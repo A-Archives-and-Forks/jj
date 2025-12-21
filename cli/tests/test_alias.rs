@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use jj_cli::config::MANAGED_CONFIG_PATH;
+
 use crate::common::TestEnvironment;
 
 #[test]
@@ -465,6 +467,29 @@ fn test_aliases_overriding_friendly_errors() {
     let output = test_env.run_jj_in(".", ["init"]);
     insta::assert_snapshot!(output, @"
     Test User
+    [EOF]
+    ");
+}
+
+#[test]
+fn test_alias_in_managed_config() {
+    let test_env = TestEnvironment::default();
+    test_env.run_jj_in(".", ["git", "init", "repo"]).success();
+    let work_dir = test_env.work_dir("repo");
+
+    // Write a valid alias to managed config
+    work_dir.write_file(
+        MANAGED_CONFIG_PATH,
+        r#"aliases.m = ["log", "-r", "@", "--no-graph", "-T", "\"managed alias\n\""]"#,
+    );
+
+    // Trust the managed config
+    work_dir.run_jj(["config", "managed", "--trust"]).success();
+
+    // Now run `jj m`
+    let output = work_dir.run_jj(["m"]);
+    insta::assert_snapshot!(output, @"
+    managed alias
     [EOF]
     ");
 }
