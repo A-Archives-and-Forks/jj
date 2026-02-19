@@ -19,7 +19,7 @@ use crate::cli_util::CommandHelper;
 use crate::command_error::CommandError;
 use crate::ui::Ui;
 
-/// Sets the trust level of jj's managed in-repo configuration.
+/// Set the trust level of jj's managed in-repo configuration.
 ///
 /// Managed configuration is like jj's repo configuration, but is stored in
 /// the repository itself, in `.config/jj/config.toml`. It is used for
