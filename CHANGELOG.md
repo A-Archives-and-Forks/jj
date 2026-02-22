@@ -23,6 +23,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 * A new global flag `--no-integrate-operation` lets you run a command without
   impacting the repo state or the working copy.
 
+* A new `replace(pattern, content, replacement)` template function is added
+  which supports replacement of content in templates, using a lambda to format
+  replacement text. It supports all string patterns, including regexes with
+  capture groups (e.g. `replace(regex:'(\w+) (\w+)', "hello world", |c| c.get(1) ++ " " ++ c.get(2))`).
+
 ## [0.40.0] - 2026-04-01
 
 ### Release highlights
