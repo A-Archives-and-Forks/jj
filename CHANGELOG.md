@@ -80,6 +80,17 @@ None
 * [Diff colors](docs/config.md#diff-colors-and-styles) can now be configured
   differently for each format.
 
+* Added `git.ignore-filters` setting to specify what filtered files in
+  `.gitattributes` are ignored by `jj`. Defaults to `["lfs"]`.
+
+* Added `git.filter` settings for configuring gitattributes clean/smudge filters.
+  When `git.filter.enabled = true`, jj runs configured filter drivers during
+  snapshot (clean) and working copy update (smudge). The filter driver command
+  supports string, array, and structured `{ env, command }` forms, and
+  interpolates `$path` with the repo-relative file path. This enables Git LFS
+  and other gitattributes filter integrations in colocated repositories.
+  ([Issue #80](https://github.com/jj-vcs/jj/issues/80))
+
 * `jj op log` now includes the name of the workspace the operation was created
   from.
 

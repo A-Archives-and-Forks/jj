@@ -81,7 +81,6 @@ use jj_lib::matchers::NothingMatcher;
 use jj_lib::merge::Diff;
 use jj_lib::merge::MergedTreeValue;
 use jj_lib::merged_tree::MergedTree;
-use jj_lib::object_id::ObjectId as _;
 use jj_lib::op_heads_store;
 use jj_lib::op_store::OpStoreError;
 use jj_lib::op_store::OperationId;
@@ -132,6 +131,7 @@ use jj_lib::transaction::Transaction;
 use jj_lib::transaction::TransactionCommitError;
 use jj_lib::working_copy;
 use jj_lib::working_copy::CheckoutStats;
+use jj_lib::working_copy::FilterIgnoreReason;
 use jj_lib::working_copy::LockedWorkingCopy;
 use jj_lib::working_copy::SnapshotOptions;
 use jj_lib::working_copy::SnapshotStats;
@@ -180,13 +180,6 @@ use crate::diff_util::DiffRenderer;
 use crate::formatter::FormatRecorder;
 use crate::formatter::Formatter;
 use crate::formatter::FormatterExt as _;
-use crate::git_util::is_colocated_git_workspace;
-#[cfg(feature = "git")]
-use crate::git_util::load_git_import_options;
-#[cfg(feature = "git")]
-use crate::git_util::print_git_export_stats;
-#[cfg(feature = "git")]
-use crate::git_util::print_git_import_stats_summary;
 use crate::merge_tools::DiffEditor;
 use crate::merge_tools::MergeEditor;
 use crate::merge_tools::MergeToolConfigError;
@@ -612,6 +605,7 @@ impl CommandHelper {
                 let wc_commit_id = workspace_command.get_wc_commit_id().unwrap();
                 let repo = workspace_command.repo().clone();
                 let stale_wc_commit = repo.store().get_commit_async(wc_commit_id).await?;
+                let path_converter = workspace_command.path_converter();
 
                 let mut workspace_command = self.workspace_helper_no_snapshot(ui)?;
 
@@ -639,6 +633,7 @@ impl CommandHelper {
                             repo.op_id().clone(),
                             &stale_wc_commit,
                             &desired_wc_commit,
+                            path_converter,
                         )
                         .await?;
                         workspace_command.print_updated_working_copy_stats(
@@ -666,9 +661,14 @@ impl CommandHelper {
                 let merged_stats = {
                     let SnapshotStats {
                         mut untracked_paths,
+                        mut unconverted_paths,
                     } = stale_stats;
                     untracked_paths.extend(fresh_stats.untracked_paths);
-                    SnapshotStats { untracked_paths }
+                    unconverted_paths.extend(fresh_stats.unconverted_paths);
+                    SnapshotStats {
+                        untracked_paths,
+                        unconverted_paths,
+                    }
                 };
                 Ok((workspace_command, merged_stats))
             }
@@ -1155,7 +1155,8 @@ impl WorkspaceCommandHelper {
             loaded_at_head && !env.command.global_args().ignore_working_copy;
         let may_update_working_copy =
             may_snapshot_working_copy && env.command.should_commit_transaction();
-        let working_copy_shared_with_git = is_colocated_git_workspace(&workspace, &repo);
+        let working_copy_shared_with_git =
+            crate::git_util::is_colocated_git_workspace(&workspace, &repo);
 
         let helper = Self {
             workspace,
@@ -1278,7 +1279,7 @@ impl WorkspaceCommandHelper {
     }
 
     /// Snapshots the working copy if allowed, and imports Git refs if the
-    /// working copy is colocated with Git.
+    /// working copy is collocated with Git.
     ///
     /// Returns whether a snapshot was taken.
     #[instrument(skip_all)]
@@ -1317,9 +1318,7 @@ impl WorkspaceCommandHelper {
         let mut tx = self.start_transaction();
         let head_changed = jj_lib::git::import_head(tx.repo_mut(), &workspace_name).block_on()?;
         if !head_changed {
-            // No change for this workspace's git HEAD
             if tx.repo().has_changes() {
-                // Other worktree heads may have been imported
                 self.user_repo =
                     ReadonlyUserRepo::new(tx.into_inner().commit("import git head").block_on()?);
             }
@@ -1333,13 +1332,9 @@ impl WorkspaceCommandHelper {
             .get_workspace_git_head(&workspace_name)
             .clone();
         if let Some(new_git_head_id) = new_workspace_git_head.as_normal() {
-            // Check if workspace already has a WC commit with the correct parent.
-            // This avoids creating spurious commits when switching between workspaces.
             if let Some(current_wc_id) = tx.repo().view().get_wc_commit_id(&workspace_name) {
                 let current_wc = tx.repo().store().get_commit(current_wc_id)?;
                 if current_wc.parent_ids().contains(new_git_head_id) {
-                    // Workspace already has a working copy with the correct parent,
-                    // no new checkout needed
                     self.user_repo =
                         ReadonlyUserRepo::new(tx.commit("import git head").block_on()?);
                     return Ok(());
@@ -1352,9 +1347,6 @@ impl WorkspaceCommandHelper {
                 .check_out(workspace_name, &new_git_head_commit)
                 .await?;
             let mut locked_ws = self.workspace.start_working_copy_mutation()?;
-            // The working copy was presumably updated by the git command that updated
-            // HEAD, so we just need to reset our working copy
-            // state to it without updating working copy files.
             locked_ws.locked_wc().reset(&wc_commit).await?;
             tx.repo_mut().rebase_descendants().await?;
             self.user_repo = ReadonlyUserRepo::new(
@@ -1373,11 +1365,8 @@ impl WorkspaceCommandHelper {
                     ui.status(),
                     "Reset the working copy parent to the new Git HEAD."
                 )?;
-            } else {
-                // Don't print verbose message on initial checkout.
             }
         } else {
-            // Unlikely, but the HEAD ref got deleted by git?
             self.finish_transaction(ui, tx, "import git head", git_import_export_lock)
                 .await?;
         }
@@ -1402,10 +1391,11 @@ impl WorkspaceCommandHelper {
         use jj_lib::git;
         let git_settings = git::GitSettings::from_settings(self.settings())?;
         let remote_settings = self.settings().remote_settings()?;
-        let import_options = load_git_import_options(ui, &git_settings, &remote_settings)?;
+        let import_options =
+            crate::git_util::load_git_import_options(ui, &git_settings, &remote_settings)?;
         let mut tx = self.start_transaction();
         let stats = git::import_refs(tx.repo_mut(), &import_options).await?;
-        print_git_import_stats_summary(ui, &stats)?;
+        crate::git_util::print_git_import_stats_summary(ui, &stats)?;
         if !tx.repo().has_changes() {
             return Ok(());
         }
@@ -2063,7 +2053,12 @@ to the current parents may contain changes from multiple commits.
                 .locked_wc()
                 .snapshot(&options)
                 .await
-                .map_err(snapshot_command_error)?
+                .map_err(|err| {
+                    snapshot_command_error(CommandError::from_snapshot_error(
+                        err,
+                        self.env.path_converter(),
+                    ))
+                })?
         };
         if new_tree.tree_ids_and_labels() != wc_commit.tree().tree_ids_and_labels() {
             let mut tx = start_repo_transaction(
@@ -2164,6 +2159,7 @@ to the current parents may contain changes from multiple commits.
             &mut self.workspace,
             maybe_old_commit,
             new_commit,
+            self.env.path_converter(),
         )
         .await?;
         self.print_updated_working_copy_stats(ui, maybe_old_commit, new_commit, &stats)
@@ -2190,7 +2186,7 @@ to the current parents may contain changes from multiple commits.
                 writeln!(formatter)?;
             }
         }
-        print_checkout_stats(ui, stats, new_commit)?;
+        print_checkout_stats(ui, stats, new_commit, self.path_converter())?;
         if Some(new_commit) != maybe_old_commit
             && let Some(mut formatter) = ui.status_formatter()
             && new_commit.has_conflict()
@@ -2316,7 +2312,7 @@ to the current parents may contain changes from multiple commits.
                 }
             }
             let stats = jj_lib::git::export_refs(tx.repo_mut())?;
-            print_git_export_stats(ui, &stats)?;
+            crate::git_util::print_git_export_stats(ui, &stats)?;
         }
 
         self.user_repo = ReadonlyUserRepo::new(
@@ -2621,7 +2617,7 @@ pub async fn export_working_copy_changes_to_git(
     let repo = mut_repo.base_repo().as_ref();
     jj_lib::git::update_intent_to_add(repo, old_tree, new_tree).await?;
     let stats = jj_lib::git::export_refs(mut_repo)?;
-    print_git_export_stats(ui, &stats)?;
+    crate::git_util::print_git_export_stats(ui, &stats)?;
     Ok(())
 }
 #[cfg(not(feature = "git"))]
@@ -2928,6 +2924,7 @@ async fn update_stale_working_copy(
     op_id: OperationId,
     stale_commit: &Commit,
     new_commit: &Commit,
+    path_converter: &RepoPathUiConverter,
 ) -> Result<CheckoutStats, CommandError> {
     // The same check as start_working_copy_mutation(), but with the stale
     // working-copy commit.
@@ -2940,12 +2937,7 @@ async fn update_stale_working_copy(
         .locked_wc()
         .check_out(new_commit)
         .await
-        .map_err(|err| {
-            internal_error_with_message(
-                format!("Failed to check out commit {}", new_commit.id().hex()),
-                err,
-            )
-        })?;
+        .map_err(|err| CommandError::from_checkout_error(err, new_commit.id(), path_converter))?;
     locked_ws.finish(op_id).await?;
 
     Ok(stats)
@@ -3106,12 +3098,35 @@ pub fn print_untracked_files(
     Ok(())
 }
 
+fn print_unconverted_files(
+    ui: &Ui,
+    unconverted_paths: &BTreeMap<RepoPathBuf, FilterIgnoreReason>,
+    path_converter: &RepoPathUiConverter,
+) -> io::Result<()> {
+    if !unconverted_paths.is_empty() {
+        writeln!(
+            ui.warning_default(),
+            "{} file(s) were not converted by Git filters during snapshot/update.",
+            unconverted_paths.len()
+        )?;
+        for (path, reason) in unconverted_paths {
+            writeln!(
+                ui.hint_default(),
+                "  {}: {reason}",
+                path_converter.format_file_path(path)
+            )?;
+        }
+    }
+    Ok(())
+}
+
 pub fn print_snapshot_stats(
     ui: &Ui,
     stats: &SnapshotStats,
     path_converter: &RepoPathUiConverter,
 ) -> io::Result<()> {
     print_untracked_files(ui, &stats.untracked_paths, path_converter)?;
+    print_unconverted_files(ui, &stats.unconverted_paths, path_converter)?;
 
     let large_files_sizes = stats
         .untracked_paths
@@ -3173,7 +3188,9 @@ pub fn print_checkout_stats(
     ui: &Ui,
     stats: &CheckoutStats,
     new_commit: &Commit,
+    path_converter: &RepoPathUiConverter,
 ) -> Result<(), std::io::Error> {
+    print_unconverted_files(ui, &stats.unconverted_paths, path_converter)?;
     if stats.added_files > 0 || stats.updated_files > 0 || stats.removed_files > 0 {
         writeln!(
             ui.status(),
@@ -3234,6 +3251,7 @@ pub async fn update_working_copy(
     workspace: &mut Workspace,
     old_commit: Option<&Commit>,
     new_commit: &Commit,
+    path_converter: &RepoPathUiConverter,
 ) -> Result<CheckoutStats, CommandError> {
     let old_tree = old_commit.map(|commit| commit.tree());
     // TODO: CheckoutError::ConcurrentCheckout should probably just result in a
@@ -3241,12 +3259,7 @@ pub async fn update_working_copy(
     let stats = workspace
         .check_out(repo.op_id().clone(), old_tree.as_ref(), new_commit)
         .await
-        .map_err(|err| {
-            internal_error_with_message(
-                format!("Failed to check out commit {}", new_commit.id().hex()),
-                err,
-            )
-        })?;
+        .map_err(|err| CommandError::from_checkout_error(err, new_commit.id(), path_converter))?;
     Ok(stats)
 }
 

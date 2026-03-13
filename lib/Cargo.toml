@@ -22,6 +22,11 @@ include = [
 ]
 
 
+[[bin]]
+name = "fake-filter"
+path = "testing/fake-filter.rs"
+required-features = ["test-fakes"]
+
 [[test]]
 name = "runner"
 
@@ -34,6 +39,7 @@ async-trait = { workspace = true }
 blake2 = { workspace = true }
 bstr = { workspace = true }
 chrono = { workspace = true }
+clap = { workspace = true, optional = true }
 clru = { workspace = true }
 digest = { workspace = true }
 dunce = { workspace = true }
@@ -41,6 +47,7 @@ either = { workspace = true }
 etcetera = { workspace = true }
 futures = { workspace = true }
 gix = { workspace = true, optional = true }
+gix-attributes = { workspace = true }
 gix-ignore = { workspace = true }
 globset = { workspace = true }
 hashbrown = { workspace = true }
@@ -60,6 +67,7 @@ rayon = { workspace = true }
 ref-cast = { workspace = true }
 regex = { workspace = true }
 serde = { workspace = true }
+shlex = { workspace = true }
 smallvec = { workspace = true }
 strsim = { workspace = true }
 tempfile = { workspace = true }
@@ -90,6 +98,10 @@ sapling-renderdag = { workspace = true }
 test-case = { workspace = true }
 testutils = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
+toml = { workspace = true }
+tracing-subscriber = { workspace = true }
+# https://github.com/rust-lang/cargo/issues/2911#issuecomment-1483256987
+jj-lib = { path = ".", features = ["test-fakes"], default-features = false }
 
 [target.'cfg(unix)'.dev-dependencies]
 nix = { workspace = true, features = [ "fs" ] }
@@ -99,6 +111,7 @@ default = ["git"]
 git = ["dep:gix"]
 watchman = ["dep:watchman_client"]
 testing = ["git"]
+test-fakes = ["testing", "dep:clap"]
 
 [lints]
 workspace = true

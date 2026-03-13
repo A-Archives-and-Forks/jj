@@ -59,6 +59,7 @@ gix = { version = "0.81.0", default-features = false, features = [
     "sha1",
     "zlib-rs",
 ] }
+gix-attributes = "0.31.0"
 gix-ignore = { version = "0.19.1" }
 globset = "0.4.18"
 hashbrown = { version = "0.16.1", default-features = false, features = ["inline-more"] }
@@ -114,16 +115,16 @@ test-case = "3.3.1"
 textwrap = "0.16.2"
 thiserror = "2.0.17"
 timeago = { version = "0.6.0", default-features = false }
-tokio = { version = "1.51.0", features = ["io-util"] }
+tokio = { version = "1.51.0", features = ["io-util", "sync"] }
 toml = "1.1.0"
 toml_edit = { version = "0.25.8", features = ["serde"] }
 tracing = "0.1.44"
 tracing-chrome = "0.7.2"
 tracing-subscriber = { version = "0.3.23", default-features = false, features = [
-    "std",
-    "ansi",
-    "env-filter",
-    "fmt",
+"std",
+"ansi",
+"env-filter",
+"fmt",
 ] }
 unicode-width = "0.2.2"
 watchman_client = "0.9.0"
