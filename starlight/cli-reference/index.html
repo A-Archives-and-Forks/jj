@@ -2841,6 +2841,15 @@ achieved with <code dir="auto">jj new</code>.</p>
 <div class="sl-heading-wrapper level-h2"><h2 id="jj-tag-list"><code dir="auto">jj tag list</code></h2><a class="sl-anchor-link" href="#jj-tag-list"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only">Section titled “jj tag list”</span></a></div>
 <p>List tags and their targets</p>
 <p>By default, a tracked remote tag will be included only if its target is different from the local tag. An untracked remote tag won't be listed. For a conflicted tag (both local and remote), old target revisions are preceded by a "-" and new target revisions are preceded by a "+".</p>
+<p>The <code dir="auto">-r</code> flag combined with revset expressions can be used for filtering. For example:</p>
+<ul>
+<li>
+<p><code dir="auto">jj tag list -r 'REV::'</code> shows tags whose targets are descendants of REV (similar to <code dir="auto">git tag --contains REV</code>).</p>
+</li>
+<li>
+<p><code dir="auto">jj tag list -r '::REV'</code> shows tags whose targets are ancestors of REV (similar to <code dir="auto">git tag --merged REV</code>).</p>
+</li>
+</ul>
 <p><strong>Usage:</strong> <code dir="auto">jj tag list [OPTIONS] [NAMES]...</code></p>
 <p><strong>Command Alias:</strong> <code dir="auto">l</code></p>
 <div class="sl-heading-wrapper level-h6"><h6 id="arguments-58"><strong>Arguments:</strong></h6><a class="sl-anchor-link" href="#arguments-58"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only">Section titled “Arguments:”</span></a></div>
