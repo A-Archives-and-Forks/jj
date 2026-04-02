@@ -8092,6 +8092,12 @@ does not match the <code>jj help</code> output exactly.</p>
 <p>Loading the repository at a specific operation with <code>--at-operation</code> implies <code>--ignore-working-copy</code>.</p>
 </li>
 <li>
+<p><code>--no-integrate-operation</code> — Run the command as usual but don't integrate any operations</p>
+<p>When this option is given, the operations will still be created as usual but they will not be integrated to the operation log. The working copy will also not be updated.</p>
+<p>The command will print the resulting operation ID. You can pass that to e.g. <code>jj --at-op</code> to inspect the resulting repo state, or you can pass it to <code>jj op restore</code> to restore the repo to that state. You can also pass the ID to <code>jj op integrate</code> to integrate the operation.</p>
+<p>Note that this does <em>not</em> prevent side effects outside the repo. For example, <code>jj git push --no-integrate-operation</code> will still perform the push.</p>
+</li>
+<li>
 <p><code>--ignore-immutable</code> — Allow rewriting immutable commits</p>
 <p>By default, Jujutsu prevents rewriting commits in the configured set of immutable commits. This option disables that check and lets you rewrite any commit but the root commit.</p>
 <p>This option only affects the check. It does not affect the <code>immutable_heads()</code> revset or the <code>immutable</code> template keyword.</p>
