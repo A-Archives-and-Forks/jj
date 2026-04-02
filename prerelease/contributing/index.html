@@ -1406,6 +1406,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#deprecations-and-removals" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deprecations and Removals
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2268,6 +2277,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#deprecations-and-removals" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deprecations and Removals
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2685,6 +2703,26 @@ your company's interests, do feel free to approve it.</p>
 <h3 id="community-guidelines">Community Guidelines<a class="headerlink" href="#community-guidelines" title="Permanent link">&para;</a></h3>
 <p>This project follows <a href="https://opensource.google/conduct/">Google's Open Source Community
 Guidelines</a>.</p>
+<h3 id="deprecations-and-removals">Deprecations and Removals<a class="headerlink" href="#deprecations-and-removals" title="Permanent link">&para;</a></h3>
+<p>If your PR removes or renames an option, a command, or config option don't
+remove it immediately. Instead implement a warning that the command, command
+option, or config option is deprecated and will be removed in
+jj <code>v&lt;current&gt; + 6</code>. Also add a <code>// TODO: remove in jj&lt;version+6&gt;+</code> comment so
+other contributors can remove it later. As we currently release monthly this
+translates to a six month deprecation period. This is something the project
+does to not break workflows and gives users the the option to
+provide feedback on features we plan to remove or supersede with other
+approaches.</p>
+<p>Changes to the repo format (everything which is in <code>.jj/</code>) are more disruptive.
+We aim to be backwards-compatible for at least a year (12 releases). Also
+consider if it's worth being forwards-compatible (i.e making sure that the last
+N versions of <code>jj</code> can read the new format). Examples of such changes are moving
+repo-level configuration out of the repository or deriving the evolog from the
+op-log.</p>
+<p>Some things are required to be supported for even longer but that is in the end
+a maintainer decision. Some examples of this were the <code>jj checkout/merge</code>
+commands (removed after 24 months/releases) or the <code>--destination</code> flag for
+which there is no final removal date yet.</p>
 <h2 id="contributing-large-patches">Contributing large patches<a class="headerlink" href="#contributing-large-patches" title="Permanent link">&para;</a></h2>
 <p>Before sending a PR for a large change which designs/redesigns or reworks an
 existing component, we require an architecture review from  multiple
