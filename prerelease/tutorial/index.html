@@ -422,6 +422,60 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Changes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-our-first-change" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating our first change
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-log-command-and-revsets" class="md-nav__link">
+    <span class="md-ellipsis">
+      The log command and "revsets"
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conflicts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conflicts
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-operation-log" class="md-nav__link">
+    <span class="md-ellipsis">
+      The operation log
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#moving-content-changes-between-commits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Moving content changes between commits
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1895,6 +1949,60 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Changes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-our-first-change" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating our first change
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-log-command-and-revsets" class="md-nav__link">
+    <span class="md-ellipsis">
+      The log command and "revsets"
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conflicts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conflicts
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-operation-log" class="md-nav__link">
+    <span class="md-ellipsis">
+      The operation log
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#moving-content-changes-between-commits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Moving content changes between commits
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1938,28 +2046,27 @@ at <a href="https://jj-for-everyone.github.io">Jujutsu for everyone</a>.</p>
 try this at home!</p>
 </blockquote>
 <p>Let's start by cloning GitHub's Hello-World repo using <code>jj</code>:</p>
-<p>```shell</p>
-<h1 id="note-the-git-before-clone-there-is-no-support-for-cloning-native-jj">Note the "git" before "clone" (there is no support for cloning native jj<a class="headerlink" href="#note-the-git-before-clone-there-is-no-support-for-cloning-native-jj" title="Permanent link">&para;</a></h1>
-<h1 id="repos-yet">repos yet)<a class="headerlink" href="#repos-yet" title="Permanent link">&para;</a></h1>
-<p>$ jj git clone https://github.com/octocat/Hello-World
-Fetching into new repo in "/tmp/tmp.O1DWMiaKd4/Hello-World"
-remote: Enumerating objects: 13, done.
-remote: Total 13 (delta 0), reused 0 (delta 0), pack-reused 13 (from 1)
-bookmark: master@origin          [new] untracked
-bookmark: octocat-patch-1@origin [new] untracked
-bookmark: test@origin            [new] untracked
-Setting the revset alias <code>trunk()</code> to <code>master@origin</code>
-Working copy  (@) now at: kntqzsqt d7439b06 (empty) (no description set)
-Parent commit (@-)      : orrkosyo 7fd1a60b master | (empty) Merge pull request #6 from Spaceghost/patch-1
-Added 1 files, modified 0 files, removed 0 files
-$ cd Hello-World
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Note the &quot;git&quot; before &quot;clone&quot; (there is no support for cloning native jj</span>
+<span class="c1"># repos yet)</span>
+$<span class="w"> </span>jj<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/octocat/Hello-World
+Fetching<span class="w"> </span>into<span class="w"> </span>new<span class="w"> </span>repo<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="s2">&quot;/tmp/tmp.O1DWMiaKd4/Hello-World&quot;</span>
+remote:<span class="w"> </span>Enumerating<span class="w"> </span>objects:<span class="w"> </span><span class="m">13</span>,<span class="w"> </span><span class="k">done</span>.
+remote:<span class="w"> </span>Total<span class="w"> </span><span class="m">13</span><span class="w"> </span><span class="o">(</span>delta<span class="w"> </span><span class="m">0</span><span class="o">)</span>,<span class="w"> </span>reused<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">(</span>delta<span class="w"> </span><span class="m">0</span><span class="o">)</span>,<span class="w"> </span>pack-reused<span class="w"> </span><span class="m">13</span><span class="w"> </span><span class="o">(</span>from<span class="w"> </span><span class="m">1</span><span class="o">)</span>
+bookmark:<span class="w"> </span>master@origin<span class="w">          </span><span class="o">[</span>new<span class="o">]</span><span class="w"> </span>untracked
+bookmark:<span class="w"> </span>octocat-patch-1@origin<span class="w"> </span><span class="o">[</span>new<span class="o">]</span><span class="w"> </span>untracked
+bookmark:<span class="w"> </span>test@origin<span class="w">            </span><span class="o">[</span>new<span class="o">]</span><span class="w"> </span>untracked
+Setting<span class="w"> </span>the<span class="w"> </span>revset<span class="w"> </span><span class="nb">alias</span><span class="w"> </span><span class="sb">`</span>trunk<span class="o">()</span><span class="sb">`</span><span class="w"> </span>to<span class="w"> </span><span class="sb">`</span>master@origin<span class="sb">`</span>
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>now<span class="w"> </span>at:<span class="w"> </span>kntqzsqt<span class="w"> </span>d7439b06<span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span><span class="o">(</span>no<span class="w"> </span>description<span class="w"> </span><span class="nb">set</span><span class="o">)</span>
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span><span class="w">      </span>:<span class="w"> </span>orrkosyo<span class="w"> </span>7fd1a60b<span class="w"> </span>master<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>Merge<span class="w"> </span>pull<span class="w"> </span>request<span class="w"> </span><span class="c1">#6 from Spaceghost/patch-1</span>
+Added<span class="w"> </span><span class="m">1</span><span class="w"> </span>files,<span class="w"> </span>modified<span class="w"> </span><span class="m">0</span><span class="w"> </span>files,<span class="w"> </span>removed<span class="w"> </span><span class="m">0</span><span class="w"> </span>files
+$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>Hello-World
+</code></pre></div>
 <p>Running <code>jj st</code> (short for <code>jj status</code>) now yields something like this:</p>
-<p><code>shell
-$ jj st
-The working copy has no changes.
-Working copy  (@) : kntqzsqt d7439b06 (empty) (no description set)
-Parent commit (@-): orrkosyo 7fd1a60b master | (empty) Merge pull request #6 from Spaceghost/patch-1</code></p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>jj<span class="w"> </span>st
+The<span class="w"> </span>working<span class="w"> </span>copy<span class="w"> </span>has<span class="w"> </span>no<span class="w"> </span>changes.
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>:<span class="w"> </span>kntqzsqt<span class="w"> </span>d7439b06<span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span><span class="o">(</span>no<span class="w"> </span>description<span class="w"> </span><span class="nb">set</span><span class="o">)</span>
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span>:<span class="w"> </span>orrkosyo<span class="w"> </span>7fd1a60b<span class="w"> </span>master<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>Merge<span class="w"> </span>pull<span class="w"> </span>request<span class="w"> </span><span class="c1">#6 from Spaceghost/patch-1</span>
+</code></pre></div>
 <p>Let's look at that output as it introduces new concepts. You can see two
 commits: Parent and working copy. Both are identified using two separate
 identifiers: the "change ID" and the "commit ID".</p>
@@ -1984,32 +2091,30 @@ separate concept and not yet a commit.</p>
 to Gerrit's Change-Id). In other words: You can make changes to files in a
 change, resulting in a new commit hash, but the change ID will remain the same.</p>
 <p>You can see that our clone operation automatically created a new change:</p>
-<p><code>shell
-Working copy  (@) : kntqzsqt d7439b06 (empty) (no description set)</code></p>
+<div class="highlight"><pre><span></span><code>Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>:<span class="w"> </span>kntqzsqt<span class="w"> </span>d7439b06<span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span><span class="o">(</span>no<span class="w"> </span>description<span class="w"> </span><span class="nb">set</span><span class="o">)</span>
+</code></pre></div>
 <p>This new change has the ID <code>kntqzsqt</code> and it is currently empty (contains no
 changes compared to the parent) and has no description.</p>
 <h2 id="creating-our-first-change">Creating our first change<a class="headerlink" href="#creating-our-first-change" title="Permanent link">&para;</a></h2>
 <p>Let's say we want to edit the <code>README</code> file in the repo to say "Goodbye"
 instead of "Hello". Start by describing the change (adding a commit message) so
 we don't forget what we're working on:</p>
-<p>```shell</p>
-<h1 id="this-brings-up-editor-or-nano-or-notepad-by-default">This brings up $EDITOR (or <code>nano</code> or <code>Notepad</code> by default).<a class="headerlink" href="#this-brings-up-editor-or-nano-or-notepad-by-default" title="Permanent link">&para;</a></h1>
-<h1 id="enter-something-like-say-goodbye-in-the-editor-and-then-save-the-file-and-close">Enter something like "Say goodbye" in the editor and then save the file and close<a class="headerlink" href="#enter-something-like-say-goodbye-in-the-editor-and-then-save-the-file-and-close" title="Permanent link">&para;</a></h1>
-<h1 id="the-editor">the editor.<a class="headerlink" href="#the-editor" title="Permanent link">&para;</a></h1>
-<p>$ jj describe
-Working copy  (@) now at: kntqzsqt e427edcf (empty) Say goodbye
-Parent commit (@-)      : orrkosyo 7fd1a60b master | (empty) Merge pull request #6 from Spaceghost/patch-1
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># This brings up $EDITOR (or `nano` or `Notepad` by default).</span>
+<span class="c1"># Enter something like &quot;Say goodbye&quot; in the editor and then save the file and close</span>
+<span class="c1"># the editor.</span>
+$<span class="w"> </span>jj<span class="w"> </span>describe
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>now<span class="w"> </span>at:<span class="w"> </span>kntqzsqt<span class="w"> </span>e427edcf<span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>Say<span class="w"> </span>goodbye
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span><span class="w">      </span>:<span class="w"> </span>orrkosyo<span class="w"> </span>7fd1a60b<span class="w"> </span>master<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>Merge<span class="w"> </span>pull<span class="w"> </span>request<span class="w"> </span><span class="c1">#6 from Spaceghost/patch-1</span>
+</code></pre></div>
 <p>Now make the change in the README:</p>
-<p>```shell</p>
-<h1 id="adjust-as-necessary-for-compatibility-with-your-flavor-of-sed">Adjust as necessary for compatibility with your flavor of <code>sed</code><a class="headerlink" href="#adjust-as-necessary-for-compatibility-with-your-flavor-of-sed" title="Permanent link">&para;</a></h1>
-<p>$ sed -i 's/Hello/Goodbye/' README
-$ jj st
-Working copy changes:
-M README
-Working copy  (@) : kntqzsqt 5d39e19d Say goodbye
-Parent commit (@-): orrkosyo 7fd1a60b master | (empty) Merge pull request #6 from Spaceghost/patch-1
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Adjust as necessary for compatibility with your flavor of `sed`</span>
+$<span class="w"> </span>sed<span class="w"> </span>-i<span class="w"> </span><span class="s1">&#39;s/Hello/Goodbye/&#39;</span><span class="w"> </span>README
+$<span class="w"> </span>jj<span class="w"> </span>st
+Working<span class="w"> </span>copy<span class="w"> </span>changes:
+M<span class="w"> </span>README
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>:<span class="w"> </span>kntqzsqt<span class="w"> </span>5d39e19d<span class="w"> </span>Say<span class="w"> </span>goodbye
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span>:<span class="w"> </span>orrkosyo<span class="w"> </span>7fd1a60b<span class="w"> </span>master<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>Merge<span class="w"> </span>pull<span class="w"> </span>request<span class="w"> </span><span class="c1">#6 from Spaceghost/patch-1</span>
+</code></pre></div>
 <p>Note that you didn't have to tell Jujutsu to add the change like you would with
 <code>git add</code>. You actually don't even need to tell it when you add new files or
 remove existing files. To untrack a path, add it to your <code>.gitignore</code> and run
@@ -2017,15 +2122,15 @@ remove existing files. To untrack a path, add it to your <code>.gitignore</code>
 <p>Also note that the commit hash for our current change (<code>kntqzsqt</code>) changed from
 <code>e427edcf</code> to <code>5d39e19d</code>!</p>
 <p>To see the diff, run <code>jj diff</code>:</p>
-<p><code>shell
-$ jj diff --git  # Feel free to skip the `--git` flag
-diff --git a/README b/README
-index 980a0d5f19..1ce3f81130 100644
---- a/README
-+++ b/README
-@@ -1,1 +1,1 @@
--Hello World!
-+Goodbye World!</code></p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>jj<span class="w"> </span>diff<span class="w"> </span>--git<span class="w">  </span><span class="c1"># Feel free to skip the `--git` flag</span>
+diff<span class="w"> </span>--git<span class="w"> </span>a/README<span class="w"> </span>b/README
+index<span class="w"> </span>980a0d5f19..1ce3f81130<span class="w"> </span><span class="m">100644</span>
+---<span class="w"> </span>a/README
++++<span class="w"> </span>b/README
+@@<span class="w"> </span>-1,1<span class="w"> </span>+1,1<span class="w"> </span>@@
+-Hello<span class="w"> </span>World!
++Goodbye<span class="w"> </span>World!
+</code></pre></div>
 <p>Jujutsu's diff format currently defaults to inline coloring of the diff (like
 <code>git diff --color-words</code>), so we used <code>--git</code> above to make the diff readable in
 this tutorial.</p>
@@ -2037,14 +2142,14 @@ and want to start working on a new one? That is what <code>jj new</code> is for.
 create a new commit on top of your current working-copy commit. The new commit
 is for the working-copy changes.</p>
 <p>So, let's say we're now done with this change, so we create a new change:</p>
-<p><code>shell
-$ jj new
-Working copy  (@) now at: mpqrykyp aef4df99 (empty) (no description set)
-Parent commit (@-)      : kntqzsqt 5d39e19d Say goodbye
-$ jj st
-The working copy has no changes.
-Working copy  (@) : mpqrykyp aef4df99 (empty) (no description set)
-Parent commit (@-): kntqzsqt 5d39e19d Say goodbye</code></p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>jj<span class="w"> </span>new
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>now<span class="w"> </span>at:<span class="w"> </span>mpqrykyp<span class="w"> </span>aef4df99<span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span><span class="o">(</span>no<span class="w"> </span>description<span class="w"> </span><span class="nb">set</span><span class="o">)</span>
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span><span class="w">      </span>:<span class="w"> </span>kntqzsqt<span class="w"> </span>5d39e19d<span class="w"> </span>Say<span class="w"> </span>goodbye
+$<span class="w"> </span>jj<span class="w"> </span>st
+The<span class="w"> </span>working<span class="w"> </span>copy<span class="w"> </span>has<span class="w"> </span>no<span class="w"> </span>changes.
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>:<span class="w"> </span>mpqrykyp<span class="w"> </span>aef4df99<span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span><span class="o">(</span>no<span class="w"> </span>description<span class="w"> </span><span class="nb">set</span><span class="o">)</span>
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span>:<span class="w"> </span>kntqzsqt<span class="w"> </span>5d39e19d<span class="w"> </span>Say<span class="w"> </span>goodbye
+</code></pre></div>
 <p>If we later realize that we want to make further changes, we can make them in
 the working copy and then run <code>jj squash</code>. That command squashes (moves) the
 changes from a given commit into its parent commit. Like most commands, it acts
@@ -2062,15 +2167,15 @@ copy, message, squashes, rebases, etc.</p>
 <h2 id="the-log-command-and-revsets">The log command and "revsets"<a class="headerlink" href="#the-log-command-and-revsets" title="Permanent link">&para;</a></h2>
 <p>You're probably familiar with <code>git log</code>. Jujutsu has very similar functionality
 in its <code>jj log</code> command:</p>
-<p><code>shell
-$ jj log
-@  mpqrykyp martinvonz@google.com 2023-02-12 15:00:22 aef4df99
-│  (empty) (no description set)
-○  kntqzsqt martinvonz@google.com 2023-02-12 14:56:59 5d39e19d
-│  Say goodbye
-◆  orrkosyo octocat@nowhere.com 2012-03-06 15:06:50 master 7fd1a60b
-│  (empty) Merge pull request #6 from Spaceghost/patch-1
-~</code></p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>jj<span class="w"> </span>log
+@<span class="w">  </span>mpqrykyp<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">15</span>:00:22<span class="w"> </span>aef4df99
+│<span class="w">  </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span><span class="o">(</span>no<span class="w"> </span>description<span class="w"> </span><span class="nb">set</span><span class="o">)</span>
+○<span class="w">  </span>kntqzsqt<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">14</span>:56:59<span class="w"> </span>5d39e19d
+│<span class="w">  </span>Say<span class="w"> </span>goodbye
+◆<span class="w">  </span>orrkosyo<span class="w"> </span>octocat@nowhere.com<span class="w"> </span><span class="m">2012</span>-03-06<span class="w"> </span><span class="m">15</span>:06:50<span class="w"> </span>master<span class="w"> </span>7fd1a60b
+│<span class="w">  </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>Merge<span class="w"> </span>pull<span class="w"> </span>request<span class="w"> </span><span class="c1">#6 from Spaceghost/patch-1</span>
+~
+</code></pre></div>
 <p>The <code>@</code> indicates the working-copy commit. The first ID on a line
 (e.g. "mpqrykyp" above) is the change ID. The second ID is the commit ID. You
 can give either ID to commands that take revisions as arguments. We will
@@ -2085,15 +2190,15 @@ refers to the working-copy commit, <code>root()</code> refers to the root commit
 <code>bookmarks()</code> refers to all commits pointed to by bookmarks (similar to Git's
 branches). We can combine expressions with <code>|</code> for union, <code>&amp;</code> for intersection
 and <code>~</code> for difference. For example:</p>
-<p><code>shell
-$ jj log -r '@ | root() | bookmarks()'
-@  mpqrykyp martinvonz@google.com 2023-02-12 15:00:22 aef4df99
-│  (empty) (no description set)
-~  (elided revisions)
-◆  orrkosyo octocat@nowhere.com 2012-03-06 15:06:50 master 7fd1a60b
-│  (empty) Merge pull request #6 from Spaceghost/patch-1
-~  (elided revisions)
-◆  zzzzzzzz root() 00000000</code></p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>jj<span class="w"> </span>log<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;@ | root() | bookmarks()&#39;</span>
+@<span class="w">  </span>mpqrykyp<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">15</span>:00:22<span class="w"> </span>aef4df99
+│<span class="w">  </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span><span class="o">(</span>no<span class="w"> </span>description<span class="w"> </span><span class="nb">set</span><span class="o">)</span>
+~<span class="w">  </span><span class="o">(</span>elided<span class="w"> </span>revisions<span class="o">)</span>
+◆<span class="w">  </span>orrkosyo<span class="w"> </span>octocat@nowhere.com<span class="w"> </span><span class="m">2012</span>-03-06<span class="w"> </span><span class="m">15</span>:06:50<span class="w"> </span>master<span class="w"> </span>7fd1a60b
+│<span class="w">  </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>Merge<span class="w"> </span>pull<span class="w"> </span>request<span class="w"> </span><span class="c1">#6 from Spaceghost/patch-1</span>
+~<span class="w">  </span><span class="o">(</span>elided<span class="w"> </span>revisions<span class="o">)</span>
+◆<span class="w">  </span>zzzzzzzz<span class="w"> </span>root<span class="o">()</span><span class="w"> </span><span class="m">00000000</span>
+</code></pre></div>
 <p>The <code>00000000</code> commit (change ID <code>zzzzzzzz</code>) is a virtual commit that's called
 the "root commit". It's the root commit of every repo. The <code>root()</code>
 function in the revset matches it.</p>
@@ -2110,71 +2215,70 @@ all the commits.</p>
 <p>Now let's see how Jujutsu deals with merge conflicts. We'll start by making some
 commits. We use <code>jj new</code> with the <code>--message</code>/<code>-m</code> option to set change
 descriptions (commit messages) right away.</p>
-<p>```shell</p>
-<h1 id="start-creating-a-chain-of-commits-off-of-the-master-bookmark">Start creating a chain of commits off of the <code>master</code> bookmark<a class="headerlink" href="#start-creating-a-chain-of-commits-off-of-the-master-bookmark" title="Permanent link">&para;</a></h1>
-<p>$ jj new master -m A; echo a &gt; file1
-Working copy  (@) now at: nuvyytnq 00a2aeed (empty) A
-Parent commit (@-)      : orrkosyo 7fd1a60b master | (empty) Merge pull request #6 from Spaceghost/patch-1
-Added 0 files, modified 1 files, removed 0 files
-$ jj new -m B1; echo b1 &gt; file1
-Working copy  (@) now at: ovknlmro 967d9f9f (empty) B1
-Parent commit (@-)      : nuvyytnq 5dda2f09 A
-$ jj new -m B2; echo b2 &gt; file1
-Working copy  (@) now at: puqltutt 8ebeaffa (empty) B2
-Parent commit (@-)      : ovknlmro 7d7c6e6b B1
-$ jj new -m C; echo c &gt; file2
-Working copy  (@) now at: qzvqqupx 62a3c6d3 (empty) C
-Parent commit (@-)      : puqltutt daa6ffd5 B2
-$ jj log
-@  qzvqqupx martinvonz@google.com 2023-02-12 15:07:41 2370ddf3
-│  C
-○  puqltutt martinvonz@google.com 2023-02-12 15:07:33 daa6ffd5
-│  B2
-○  ovknlmro martinvonz@google.com 2023-02-12 15:07:24 7d7c6e6b
-│  B1
-○  nuvyytnq martinvonz@google.com 2023-02-12 15:07:05 5dda2f09
-│  A
-│ ○  kntqzsqt martinvonz@google.com 2023-02-12 14:56:59 5d39e19d
-├─╯  Say goodbye
-◆  orrkosyo octocat@nowhere.com 2012-03-06 15:06:50 master 7fd1a60b
-│  (empty) Merge pull request #6 from Spaceghost/patch-1
+<div class="highlight"><pre><span></span><code><span class="c1"># Start creating a chain of commits off of the `master` bookmark</span>
+$<span class="w"> </span>jj<span class="w"> </span>new<span class="w"> </span>master<span class="w"> </span>-m<span class="w"> </span>A<span class="p">;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>a<span class="w"> </span>&gt;<span class="w"> </span>file1
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>now<span class="w"> </span>at:<span class="w"> </span>nuvyytnq<span class="w"> </span>00a2aeed<span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>A
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span><span class="w">      </span>:<span class="w"> </span>orrkosyo<span class="w"> </span>7fd1a60b<span class="w"> </span>master<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>Merge<span class="w"> </span>pull<span class="w"> </span>request<span class="w"> </span><span class="c1">#6 from Spaceghost/patch-1</span>
+Added<span class="w"> </span><span class="m">0</span><span class="w"> </span>files,<span class="w"> </span>modified<span class="w"> </span><span class="m">1</span><span class="w"> </span>files,<span class="w"> </span>removed<span class="w"> </span><span class="m">0</span><span class="w"> </span>files
+$<span class="w"> </span>jj<span class="w"> </span>new<span class="w"> </span>-m<span class="w"> </span>B1<span class="p">;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>b1<span class="w"> </span>&gt;<span class="w"> </span>file1
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>now<span class="w"> </span>at:<span class="w"> </span>ovknlmro<span class="w"> </span>967d9f9f<span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>B1
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span><span class="w">      </span>:<span class="w"> </span>nuvyytnq<span class="w"> </span>5dda2f09<span class="w"> </span>A
+$<span class="w"> </span>jj<span class="w"> </span>new<span class="w"> </span>-m<span class="w"> </span>B2<span class="p">;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>b2<span class="w"> </span>&gt;<span class="w"> </span>file1
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>now<span class="w"> </span>at:<span class="w"> </span>puqltutt<span class="w"> </span>8ebeaffa<span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>B2
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span><span class="w">      </span>:<span class="w"> </span>ovknlmro<span class="w"> </span>7d7c6e6b<span class="w"> </span>B1
+$<span class="w"> </span>jj<span class="w"> </span>new<span class="w"> </span>-m<span class="w"> </span>C<span class="p">;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>c<span class="w"> </span>&gt;<span class="w"> </span>file2
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>now<span class="w"> </span>at:<span class="w"> </span>qzvqqupx<span class="w"> </span>62a3c6d3<span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>C
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span><span class="w">      </span>:<span class="w"> </span>puqltutt<span class="w"> </span>daa6ffd5<span class="w"> </span>B2
+$<span class="w"> </span>jj<span class="w"> </span>log
+@<span class="w">  </span>qzvqqupx<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">15</span>:07:41<span class="w"> </span>2370ddf3
+│<span class="w">  </span>C
+○<span class="w">  </span>puqltutt<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">15</span>:07:33<span class="w"> </span>daa6ffd5
+│<span class="w">  </span>B2
+○<span class="w">  </span>ovknlmro<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">15</span>:07:24<span class="w"> </span>7d7c6e6b
+│<span class="w">  </span>B1
+○<span class="w">  </span>nuvyytnq<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">15</span>:07:05<span class="w"> </span>5dda2f09
+│<span class="w">  </span>A
+│<span class="w"> </span>○<span class="w">  </span>kntqzsqt<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">14</span>:56:59<span class="w"> </span>5d39e19d
+├─╯<span class="w">  </span>Say<span class="w"> </span>goodbye
+◆<span class="w">  </span>orrkosyo<span class="w"> </span>octocat@nowhere.com<span class="w"> </span><span class="m">2012</span>-03-06<span class="w"> </span><span class="m">15</span>:06:50<span class="w"> </span>master<span class="w"> </span>7fd1a60b
+│<span class="w">  </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>Merge<span class="w"> </span>pull<span class="w"> </span>request<span class="w"> </span><span class="c1">#6 from Spaceghost/patch-1</span>
 ~
-```</p>
+</code></pre></div>
 <p>We now have a few commits, where A, B1, and B2 modify the same file, while C
 modifies a different file. Let's now rebase B2 directly onto A. We use the
 <code>--source</code>/<code>-s</code> option on the change ID of B2, and <code>--onto</code>/<code>-o</code> option on A.</p>
-<p><code>``shell
-$ jj rebase -s puqltutt -o nuvyytnq  # Replace the IDs by what you have for B2 and A
-Rebased 2 commits to destination
-Working copy  (@) now at: qzvqqupx 1978b534 (conflict) C
-Parent commit (@-)      : puqltutt f7fb5943 (conflict) B2
-Added 0 files, modified 1 files, removed 0 files
-Warning: There are unresolved conflicts at these paths:
-file1    2-sided conflict
-New conflicts appeared in 2 commits:
-  qzvqqupx 1978b534 (conflict) C
-  puqltutt f7fb5943 (conflict) B2
-Hint: To resolve the conflicts, start by creating a commit on top of
-the first conflicted commit:
-  jj new puqltutt
-Then use</code>jj resolve<code>, or edit the conflict markers in the file directly.
-Once the conflicts are resolved, you can inspect the result with</code>jj diff<code>.
-Then run</code>jj squash` to move the resolution into the conflicted commit.</p>
-<p>$ jj log
-@  qzvqqupx martinvonz@google.com 2023-02-12 15:08:33 1978b534 (conflict)
-│  C
-×  puqltutt martinvonz@google.com 2023-02-12 15:08:33 f7fb5943 (conflict)
-│  B2
-│ ○  ovknlmro martinvonz@google.com 2023-02-12 15:07:24 7d7c6e6b
-├─╯  B1
-○  nuvyytnq martinvonz@google.com 2023-02-12 15:07:05 5dda2f09
-│  A
-│ ○  kntqzsqt martinvonz@google.com 2023-02-12 14:56:59 5d39e19d
-├─╯  Say goodbye
-◆  orrkosyo octocat@nowhere.com 2012-03-06 15:06:50 master 7fd1a60b
-│  (empty) Merge pull request #6 from Spaceghost/patch-1
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>jj<span class="w"> </span>rebase<span class="w"> </span>-s<span class="w"> </span>puqltutt<span class="w"> </span>-o<span class="w"> </span>nuvyytnq<span class="w">  </span><span class="c1"># Replace the IDs by what you have for B2 and A</span>
+Rebased<span class="w"> </span><span class="m">2</span><span class="w"> </span>commits<span class="w"> </span>to<span class="w"> </span>destination
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>now<span class="w"> </span>at:<span class="w"> </span>qzvqqupx<span class="w"> </span>1978b534<span class="w"> </span><span class="o">(</span>conflict<span class="o">)</span><span class="w"> </span>C
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span><span class="w">      </span>:<span class="w"> </span>puqltutt<span class="w"> </span>f7fb5943<span class="w"> </span><span class="o">(</span>conflict<span class="o">)</span><span class="w"> </span>B2
+Added<span class="w"> </span><span class="m">0</span><span class="w"> </span>files,<span class="w"> </span>modified<span class="w"> </span><span class="m">1</span><span class="w"> </span>files,<span class="w"> </span>removed<span class="w"> </span><span class="m">0</span><span class="w"> </span>files
+Warning:<span class="w"> </span>There<span class="w"> </span>are<span class="w"> </span>unresolved<span class="w"> </span>conflicts<span class="w"> </span>at<span class="w"> </span>these<span class="w"> </span>paths:
+file1<span class="w">    </span><span class="m">2</span>-sided<span class="w"> </span>conflict
+New<span class="w"> </span>conflicts<span class="w"> </span>appeared<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="m">2</span><span class="w"> </span>commits:
+<span class="w">  </span>qzvqqupx<span class="w"> </span>1978b534<span class="w"> </span><span class="o">(</span>conflict<span class="o">)</span><span class="w"> </span>C
+<span class="w">  </span>puqltutt<span class="w"> </span>f7fb5943<span class="w"> </span><span class="o">(</span>conflict<span class="o">)</span><span class="w"> </span>B2
+Hint:<span class="w"> </span>To<span class="w"> </span>resolve<span class="w"> </span>the<span class="w"> </span>conflicts,<span class="w"> </span>start<span class="w"> </span>by<span class="w"> </span>creating<span class="w"> </span>a<span class="w"> </span>commit<span class="w"> </span>on<span class="w"> </span>top<span class="w"> </span>of
+the<span class="w"> </span>first<span class="w"> </span>conflicted<span class="w"> </span>commit:
+<span class="w">  </span>jj<span class="w"> </span>new<span class="w"> </span>puqltutt
+Then<span class="w"> </span>use<span class="w"> </span><span class="sb">`</span>jj<span class="w"> </span>resolve<span class="sb">`</span>,<span class="w"> </span>or<span class="w"> </span>edit<span class="w"> </span>the<span class="w"> </span>conflict<span class="w"> </span>markers<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>file<span class="w"> </span>directly.
+Once<span class="w"> </span>the<span class="w"> </span>conflicts<span class="w"> </span>are<span class="w"> </span>resolved,<span class="w"> </span>you<span class="w"> </span>can<span class="w"> </span>inspect<span class="w"> </span>the<span class="w"> </span>result<span class="w"> </span>with<span class="w"> </span><span class="sb">`</span>jj<span class="w"> </span>diff<span class="sb">`</span>.
+Then<span class="w"> </span>run<span class="w"> </span><span class="sb">`</span>jj<span class="w"> </span>squash<span class="sb">`</span><span class="w"> </span>to<span class="w"> </span>move<span class="w"> </span>the<span class="w"> </span>resolution<span class="w"> </span>into<span class="w"> </span>the<span class="w"> </span>conflicted<span class="w"> </span>commit.
+
+$<span class="w"> </span>jj<span class="w"> </span>log
+@<span class="w">  </span>qzvqqupx<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">15</span>:08:33<span class="w"> </span>1978b534<span class="w"> </span><span class="o">(</span>conflict<span class="o">)</span>
+│<span class="w">  </span>C
+×<span class="w">  </span>puqltutt<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">15</span>:08:33<span class="w"> </span>f7fb5943<span class="w"> </span><span class="o">(</span>conflict<span class="o">)</span>
+│<span class="w">  </span>B2
+│<span class="w"> </span>○<span class="w">  </span>ovknlmro<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">15</span>:07:24<span class="w"> </span>7d7c6e6b
+├─╯<span class="w">  </span>B1
+○<span class="w">  </span>nuvyytnq<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">15</span>:07:05<span class="w"> </span>5dda2f09
+│<span class="w">  </span>A
+│<span class="w"> </span>○<span class="w">  </span>kntqzsqt<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">14</span>:56:59<span class="w"> </span>5d39e19d
+├─╯<span class="w">  </span>Say<span class="w"> </span>goodbye
+◆<span class="w">  </span>orrkosyo<span class="w"> </span>octocat@nowhere.com<span class="w"> </span><span class="m">2012</span>-03-06<span class="w"> </span><span class="m">15</span>:06:50<span class="w"> </span>master<span class="w"> </span>7fd1a60b
+│<span class="w">  </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>Merge<span class="w"> </span>pull<span class="w"> </span>request<span class="w"> </span><span class="c1">#6 from Spaceghost/patch-1</span>
 ~
-```</p>
+</code></pre></div>
 <p>There are several things worth noting here. First, the <code>jj rebase</code> command said
 "Rebased 2 commits". That's because we asked it to rebase commit B2 with the
 <code>-s</code> option, which also rebases descendants (commit C in this case). Second,
@@ -2185,77 +2289,68 @@ on top.</p>
 <p>Now let's resolve the conflict in B2. We'll do that by creating a new commit on
 top of B2. Once we've resolved the conflict, we'll squash the conflict
 resolution into the conflicted B2. That might look like this:</p>
-<p>```shell
-$ jj new puqltutt  # Replace the ID by what you have for B2
-Working copy  (@) now at: zxoosnnp c7068d1c (conflict) (empty) (no description set)
-Parent commit (@-)      : puqltutt f7fb5943 (conflict) B2
-Added 0 files, modified 0 files, removed 1 files
-Warning: There are unresolved conflicts at these paths:
-file1    2-sided conflict</p>
-<p>$ jj st
-The working copy has no changes.
-Working copy  (@) : zxoosnnp c7068d1c (conflict) (empty) (no description set)
-Parent commit (@-): puqltutt f7fb5943 (conflict) B2
-Warning: There are unresolved conflicts at these paths:
-file1    2-sided conflict
-Hint: To resolve the conflicts, start by creating a commit on top of
-the conflicted commit:
-  jj new puqltutt
-Then use <code>jj resolve</code>, or edit the conflict markers in the file directly.
-Once the conflicts are resolved, you can inspect the result with <code>jj diff</code>.
-Then run <code>jj squash</code> to move the resolution into the conflicted commit.</p>
-<p>$ cat file1
-&lt;&lt;&lt;&lt;&lt;&lt;&lt; conflict 1 of 1
-%%%%%%% diff from: ovknlmro 7d7c6e6b "B1" (parents of rebased revision)
-\\\\        to: nuvyytnq 5dda2f09 "A" (rebase destination)
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>jj<span class="w"> </span>new<span class="w"> </span>puqltutt<span class="w">  </span><span class="c1"># Replace the ID by what you have for B2</span>
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>now<span class="w"> </span>at:<span class="w"> </span>zxoosnnp<span class="w"> </span>c7068d1c<span class="w"> </span><span class="o">(</span>conflict<span class="o">)</span><span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span><span class="o">(</span>no<span class="w"> </span>description<span class="w"> </span><span class="nb">set</span><span class="o">)</span>
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span><span class="w">      </span>:<span class="w"> </span>puqltutt<span class="w"> </span>f7fb5943<span class="w"> </span><span class="o">(</span>conflict<span class="o">)</span><span class="w"> </span>B2
+Added<span class="w"> </span><span class="m">0</span><span class="w"> </span>files,<span class="w"> </span>modified<span class="w"> </span><span class="m">0</span><span class="w"> </span>files,<span class="w"> </span>removed<span class="w"> </span><span class="m">1</span><span class="w"> </span>files
+Warning:<span class="w"> </span>There<span class="w"> </span>are<span class="w"> </span>unresolved<span class="w"> </span>conflicts<span class="w"> </span>at<span class="w"> </span>these<span class="w"> </span>paths:
+file1<span class="w">    </span><span class="m">2</span>-sided<span class="w"> </span>conflict
+
+$<span class="w"> </span>jj<span class="w"> </span>st
+The<span class="w"> </span>working<span class="w"> </span>copy<span class="w"> </span>has<span class="w"> </span>no<span class="w"> </span>changes.
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>:<span class="w"> </span>zxoosnnp<span class="w"> </span>c7068d1c<span class="w"> </span><span class="o">(</span>conflict<span class="o">)</span><span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span><span class="o">(</span>no<span class="w"> </span>description<span class="w"> </span><span class="nb">set</span><span class="o">)</span>
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span>:<span class="w"> </span>puqltutt<span class="w"> </span>f7fb5943<span class="w"> </span><span class="o">(</span>conflict<span class="o">)</span><span class="w"> </span>B2
+Warning:<span class="w"> </span>There<span class="w"> </span>are<span class="w"> </span>unresolved<span class="w"> </span>conflicts<span class="w"> </span>at<span class="w"> </span>these<span class="w"> </span>paths:
+file1<span class="w">    </span><span class="m">2</span>-sided<span class="w"> </span>conflict
+Hint:<span class="w"> </span>To<span class="w"> </span>resolve<span class="w"> </span>the<span class="w"> </span>conflicts,<span class="w"> </span>start<span class="w"> </span>by<span class="w"> </span>creating<span class="w"> </span>a<span class="w"> </span>commit<span class="w"> </span>on<span class="w"> </span>top<span class="w"> </span>of
+the<span class="w"> </span>conflicted<span class="w"> </span>commit:
+<span class="w">  </span>jj<span class="w"> </span>new<span class="w"> </span>puqltutt
+Then<span class="w"> </span>use<span class="w"> </span><span class="sb">`</span>jj<span class="w"> </span>resolve<span class="sb">`</span>,<span class="w"> </span>or<span class="w"> </span>edit<span class="w"> </span>the<span class="w"> </span>conflict<span class="w"> </span>markers<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>file<span class="w"> </span>directly.
+Once<span class="w"> </span>the<span class="w"> </span>conflicts<span class="w"> </span>are<span class="w"> </span>resolved,<span class="w"> </span>you<span class="w"> </span>can<span class="w"> </span>inspect<span class="w"> </span>the<span class="w"> </span>result<span class="w"> </span>with<span class="w"> </span><span class="sb">`</span>jj<span class="w"> </span>diff<span class="sb">`</span>.
+Then<span class="w"> </span>run<span class="w"> </span><span class="sb">`</span>jj<span class="w"> </span>squash<span class="sb">`</span><span class="w"> </span>to<span class="w"> </span>move<span class="w"> </span>the<span class="w"> </span>resolution<span class="w"> </span>into<span class="w"> </span>the<span class="w"> </span>conflicted<span class="w"> </span>commit.
+
+$<span class="w"> </span>cat<span class="w"> </span>file1
+<span class="o">&lt;&lt;&lt;&lt;&lt;&lt;</span>&lt;<span class="w"> </span>conflict<span class="w"> </span><span class="m">1</span><span class="w"> </span>of<span class="w"> </span><span class="m">1</span>
+%%%%%%%<span class="w"> </span>diff<span class="w"> </span>from:<span class="w"> </span>ovknlmro<span class="w"> </span>7d7c6e6b<span class="w"> </span><span class="s2">&quot;B1&quot;</span><span class="w"> </span><span class="o">(</span>parents<span class="w"> </span>of<span class="w"> </span>rebased<span class="w"> </span>revision<span class="o">)</span>
+<span class="se">\\\\\\\ </span><span class="w">       </span>to:<span class="w"> </span>nuvyytnq<span class="w"> </span>5dda2f09<span class="w"> </span><span class="s2">&quot;A&quot;</span><span class="w"> </span><span class="o">(</span>rebase<span class="w"> </span>destination<span class="o">)</span>
 -b1
 +a
-+++++++ puqltutt daa6ffd5 "B2" (rebased revision)
-b2</p>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>conflict 1 of 1 ends</p>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-<p>$ echo resolved &gt; file1</p>
-<p>$ jj st
-Working copy changes:
-M file1
-Working copy  (@) : zxoosnnp c2a31a06 (no description set)
-Parent commit (@-): puqltutt f7fb5943 (conflict) B2
-Hint: Conflict in parent commit has been resolved in working copy</p>
-<p>$ jj squash
-Rebased 1 descendant commits
-Working copy  (@) now at: ntxxqymr e3c279cc (empty) (no description set)
-Parent commit (@-)      : puqltutt 2c7a658e B2
-Existing conflicts were resolved or abandoned from 2 commits.</p>
-<p>$ jj log
-@  ntxxqymr martinvonz@google.com 2023-02-12 19:34:09 e3c279cc
-│  (empty) (no description set)
-│ ○  qzvqqupx martinvonz@google.com 2023-02-12 19:34:09 b9da9d28
-├─╯  C
-○  puqltutt martinvonz@google.com 2023-02-12 19:34:09 2c7a658e
-│  B2
-│ ○  ovknlmro martinvonz@google.com 2023-02-12 15:07:24 7d7c6e6b
-├─╯  B1
-○  nuvyytnq martinvonz@google.com 2023-02-12 15:07:05 5dda2f09
-│  A
-│ ○  kntqzsqt martinvonz@google.com 2023-02-12 14:56:59 5d39e19d
-├─╯  Say goodbye
-◆  orrkosyo octocat@nowhere.com 2012-03-06 15:06:50 master 7fd1a60b
-│  (empty) Merge pull request #6 from Spaceghost/patch-1
++++++++<span class="w"> </span>puqltutt<span class="w"> </span>daa6ffd5<span class="w"> </span><span class="s2">&quot;B2&quot;</span><span class="w"> </span><span class="o">(</span>rebased<span class="w"> </span>revision<span class="o">)</span>
+b2
+&gt;&gt;&gt;&gt;&gt;&gt;&gt;<span class="w"> </span>conflict<span class="w"> </span><span class="m">1</span><span class="w"> </span>of<span class="w"> </span><span class="m">1</span><span class="w"> </span>ends
+
+$<span class="w"> </span><span class="nb">echo</span><span class="w"> </span>resolved<span class="w"> </span>&gt;<span class="w"> </span>file1
+
+$<span class="w"> </span>jj<span class="w"> </span>st
+Working<span class="w"> </span>copy<span class="w"> </span>changes:
+M<span class="w"> </span>file1
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>:<span class="w"> </span>zxoosnnp<span class="w"> </span>c2a31a06<span class="w"> </span><span class="o">(</span>no<span class="w"> </span>description<span class="w"> </span><span class="nb">set</span><span class="o">)</span>
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span>:<span class="w"> </span>puqltutt<span class="w"> </span>f7fb5943<span class="w"> </span><span class="o">(</span>conflict<span class="o">)</span><span class="w"> </span>B2
+Hint:<span class="w"> </span>Conflict<span class="w"> </span><span class="k">in</span><span class="w"> </span>parent<span class="w"> </span>commit<span class="w"> </span>has<span class="w"> </span>been<span class="w"> </span>resolved<span class="w"> </span><span class="k">in</span><span class="w"> </span>working<span class="w"> </span>copy
+
+$<span class="w"> </span>jj<span class="w"> </span>squash
+Rebased<span class="w"> </span><span class="m">1</span><span class="w"> </span>descendant<span class="w"> </span>commits
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>now<span class="w"> </span>at:<span class="w"> </span>ntxxqymr<span class="w"> </span>e3c279cc<span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span><span class="o">(</span>no<span class="w"> </span>description<span class="w"> </span><span class="nb">set</span><span class="o">)</span>
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span><span class="w">      </span>:<span class="w"> </span>puqltutt<span class="w"> </span>2c7a658e<span class="w"> </span>B2
+Existing<span class="w"> </span>conflicts<span class="w"> </span>were<span class="w"> </span>resolved<span class="w"> </span>or<span class="w"> </span>abandoned<span class="w"> </span>from<span class="w"> </span><span class="m">2</span><span class="w"> </span>commits.
+
+$<span class="w"> </span>jj<span class="w"> </span>log
+@<span class="w">  </span>ntxxqymr<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">19</span>:34:09<span class="w"> </span>e3c279cc
+│<span class="w">  </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span><span class="o">(</span>no<span class="w"> </span>description<span class="w"> </span><span class="nb">set</span><span class="o">)</span>
+│<span class="w"> </span>○<span class="w">  </span>qzvqqupx<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">19</span>:34:09<span class="w"> </span>b9da9d28
+├─╯<span class="w">  </span>C
+○<span class="w">  </span>puqltutt<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">19</span>:34:09<span class="w"> </span>2c7a658e
+│<span class="w">  </span>B2
+│<span class="w"> </span>○<span class="w">  </span>ovknlmro<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">15</span>:07:24<span class="w"> </span>7d7c6e6b
+├─╯<span class="w">  </span>B1
+○<span class="w">  </span>nuvyytnq<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">15</span>:07:05<span class="w"> </span>5dda2f09
+│<span class="w">  </span>A
+│<span class="w"> </span>○<span class="w">  </span>kntqzsqt<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">14</span>:56:59<span class="w"> </span>5d39e19d
+├─╯<span class="w">  </span>Say<span class="w"> </span>goodbye
+◆<span class="w">  </span>orrkosyo<span class="w"> </span>octocat@nowhere.com<span class="w"> </span><span class="m">2012</span>-03-06<span class="w"> </span><span class="m">15</span>:06:50<span class="w"> </span>master<span class="w"> </span>7fd1a60b
+│<span class="w">  </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>Merge<span class="w"> </span>pull<span class="w"> </span>request<span class="w"> </span><span class="c1">#6 from Spaceghost/patch-1</span>
 ~
-```</p>
+</code></pre></div>
 <p>Note that commit C automatically got rebased on top of the resolved B2, and that
 C is also resolved (since it modified only a different file).</p>
 <p>By the way, if we want to get rid of B1 now, we can run <code>jj abandon
@@ -2265,53 +2360,53 @@ descendants to its parent.</p>
 <p>Jujutsu keeps a record of all changes you've made to the repo in what's called
 the "operation log". Use the <code>jj op</code> (short for <code>jj operation</code>) family of
 commands to interact with it. To list the operations, use <code>jj op log</code>:</p>
-<p><code>shell
-$ jj op log
-@  d3b77addea49 martinvonz@vonz.svl.corp.google.com 3 minutes ago, lasted 3 milliseconds
-│  squash commits into f7fb5943a6b9460eb106dba2fac5cac1625c6f7a
-│  args: jj squash
-○  6fc1873c1180 martinvonz@vonz.svl.corp.google.com 3 minutes ago, lasted 1 milliseconds
-│  snapshot working copy
-│  args: jj st
-○  ed91f7bcc1fb martinvonz@vonz.svl.corp.google.com 6 minutes ago, lasted 1 milliseconds
-│  new empty commit
-│  args: jj new puqltutt
-○  367400773f87 martinvonz@vonz.svl.corp.google.com 12 minutes ago, lasted 3 milliseconds
-│  rebase commit daa6ffd5a09a8a7d09a65796194e69b7ed0a566d and descendants
-│  args: jj rebase -s puqltutt -o nuvyytnq
-[many more lines]</code></p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>jj<span class="w"> </span>op<span class="w"> </span>log
+@<span class="w">  </span>d3b77addea49<span class="w"> </span>martinvonz@vonz.svl.corp.google.com<span class="w"> </span><span class="m">3</span><span class="w"> </span>minutes<span class="w"> </span>ago,<span class="w"> </span>lasted<span class="w"> </span><span class="m">3</span><span class="w"> </span>milliseconds
+│<span class="w">  </span>squash<span class="w"> </span>commits<span class="w"> </span>into<span class="w"> </span>f7fb5943a6b9460eb106dba2fac5cac1625c6f7a
+│<span class="w">  </span>args:<span class="w"> </span>jj<span class="w"> </span>squash
+○<span class="w">  </span>6fc1873c1180<span class="w"> </span>martinvonz@vonz.svl.corp.google.com<span class="w"> </span><span class="m">3</span><span class="w"> </span>minutes<span class="w"> </span>ago,<span class="w"> </span>lasted<span class="w"> </span><span class="m">1</span><span class="w"> </span>milliseconds
+│<span class="w">  </span>snapshot<span class="w"> </span>working<span class="w"> </span>copy
+│<span class="w">  </span>args:<span class="w"> </span>jj<span class="w"> </span>st
+○<span class="w">  </span>ed91f7bcc1fb<span class="w"> </span>martinvonz@vonz.svl.corp.google.com<span class="w"> </span><span class="m">6</span><span class="w"> </span>minutes<span class="w"> </span>ago,<span class="w"> </span>lasted<span class="w"> </span><span class="m">1</span><span class="w"> </span>milliseconds
+│<span class="w">  </span>new<span class="w"> </span>empty<span class="w"> </span>commit
+│<span class="w">  </span>args:<span class="w"> </span>jj<span class="w"> </span>new<span class="w"> </span>puqltutt
+○<span class="w">  </span>367400773f87<span class="w"> </span>martinvonz@vonz.svl.corp.google.com<span class="w"> </span><span class="m">12</span><span class="w"> </span>minutes<span class="w"> </span>ago,<span class="w"> </span>lasted<span class="w"> </span><span class="m">3</span><span class="w"> </span>milliseconds
+│<span class="w">  </span>rebase<span class="w"> </span>commit<span class="w"> </span>daa6ffd5a09a8a7d09a65796194e69b7ed0a566d<span class="w"> </span>and<span class="w"> </span>descendants
+│<span class="w">  </span>args:<span class="w"> </span>jj<span class="w"> </span>rebase<span class="w"> </span>-s<span class="w"> </span>puqltutt<span class="w"> </span>-o<span class="w"> </span>nuvyytnq
+<span class="o">[</span>many<span class="w"> </span>more<span class="w"> </span>lines<span class="o">]</span>
+</code></pre></div>
 <p>The most useful command is <code>jj undo</code>, which will undo your last operation.</p>
-<p><code>``shell
-$ jj undo
-Reverted operation: d3b77addea49 (2025-05-12 00:27:27) squash commits into f7fb5943a6b9460eb106dba2fac5cac1625c6f7a
-Working copy  (@) now at: zxoosnnp 63874fe6 (no description set)
-Parent commit (@-)      : puqltutt f7fb5943 (conflict) B2
-New conflicts appeared in 2 commits:
-  qzvqqupx 1978b534 (conflict) C
-  puqltutt f7fb5943 (conflict) B2
-Hint: To resolve the conflicts, start by creating a commit on top of
-the first conflicted commit:
-  jj new puqltutt
-Then use</code>jj resolve<code>, or edit the conflict markers in the file directly.
-Once the conflicts are resolved, you can inspect the result with</code>jj diff<code>.
-Then run</code>jj squash` to move the resolution into the conflicted commit.</p>
-<p>$ jj log
-@  zxoosnnp martinvonz@google.com 2023-02-12 19:34:09 63874fe6
-│  (no description set)
-│ ×  qzvqqupx martinvonz@google.com 2023-02-12 15:08:33 1978b534 (conflict)
-├─╯  C
-×  puqltutt martinvonz@google.com 2023-02-12 15:08:33 f7fb5943 (conflict)
-│  B2
-│ ○  ovknlmro martinvonz@google.com 2023-02-12 15:07:24 7d7c6e6b
-├─╯  B1
-○  nuvyytnq martinvonz@google.com 2023-02-12 15:07:05 5dda2f09
-│  A
-│ ○  kntqzsqt martinvonz@google.com 2023-02-12 14:56:59 5d39e19d
-├─╯  Say goodbye
-◆  orrkosyo octocat@nowhere.com 2012-03-06 15:06:50 master 7fd1a60b
-│  (empty) Merge pull request #6 from Spaceghost/patch-1
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>jj<span class="w"> </span>undo
+Reverted<span class="w"> </span>operation:<span class="w"> </span>d3b77addea49<span class="w"> </span><span class="o">(</span><span class="m">2025</span>-05-12<span class="w"> </span><span class="m">00</span>:27:27<span class="o">)</span><span class="w"> </span>squash<span class="w"> </span>commits<span class="w"> </span>into<span class="w"> </span>f7fb5943a6b9460eb106dba2fac5cac1625c6f7a
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>now<span class="w"> </span>at:<span class="w"> </span>zxoosnnp<span class="w"> </span>63874fe6<span class="w"> </span><span class="o">(</span>no<span class="w"> </span>description<span class="w"> </span><span class="nb">set</span><span class="o">)</span>
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span><span class="w">      </span>:<span class="w"> </span>puqltutt<span class="w"> </span>f7fb5943<span class="w"> </span><span class="o">(</span>conflict<span class="o">)</span><span class="w"> </span>B2
+New<span class="w"> </span>conflicts<span class="w"> </span>appeared<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="m">2</span><span class="w"> </span>commits:
+<span class="w">  </span>qzvqqupx<span class="w"> </span>1978b534<span class="w"> </span><span class="o">(</span>conflict<span class="o">)</span><span class="w"> </span>C
+<span class="w">  </span>puqltutt<span class="w"> </span>f7fb5943<span class="w"> </span><span class="o">(</span>conflict<span class="o">)</span><span class="w"> </span>B2
+Hint:<span class="w"> </span>To<span class="w"> </span>resolve<span class="w"> </span>the<span class="w"> </span>conflicts,<span class="w"> </span>start<span class="w"> </span>by<span class="w"> </span>creating<span class="w"> </span>a<span class="w"> </span>commit<span class="w"> </span>on<span class="w"> </span>top<span class="w"> </span>of
+the<span class="w"> </span>first<span class="w"> </span>conflicted<span class="w"> </span>commit:
+<span class="w">  </span>jj<span class="w"> </span>new<span class="w"> </span>puqltutt
+Then<span class="w"> </span>use<span class="w"> </span><span class="sb">`</span>jj<span class="w"> </span>resolve<span class="sb">`</span>,<span class="w"> </span>or<span class="w"> </span>edit<span class="w"> </span>the<span class="w"> </span>conflict<span class="w"> </span>markers<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>file<span class="w"> </span>directly.
+Once<span class="w"> </span>the<span class="w"> </span>conflicts<span class="w"> </span>are<span class="w"> </span>resolved,<span class="w"> </span>you<span class="w"> </span>can<span class="w"> </span>inspect<span class="w"> </span>the<span class="w"> </span>result<span class="w"> </span>with<span class="w"> </span><span class="sb">`</span>jj<span class="w"> </span>diff<span class="sb">`</span>.
+Then<span class="w"> </span>run<span class="w"> </span><span class="sb">`</span>jj<span class="w"> </span>squash<span class="sb">`</span><span class="w"> </span>to<span class="w"> </span>move<span class="w"> </span>the<span class="w"> </span>resolution<span class="w"> </span>into<span class="w"> </span>the<span class="w"> </span>conflicted<span class="w"> </span>commit.
+
+$<span class="w"> </span>jj<span class="w"> </span>log
+@<span class="w">  </span>zxoosnnp<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">19</span>:34:09<span class="w"> </span>63874fe6
+│<span class="w">  </span><span class="o">(</span>no<span class="w"> </span>description<span class="w"> </span><span class="nb">set</span><span class="o">)</span>
+│<span class="w"> </span>×<span class="w">  </span>qzvqqupx<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">15</span>:08:33<span class="w"> </span>1978b534<span class="w"> </span><span class="o">(</span>conflict<span class="o">)</span>
+├─╯<span class="w">  </span>C
+×<span class="w">  </span>puqltutt<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">15</span>:08:33<span class="w"> </span>f7fb5943<span class="w"> </span><span class="o">(</span>conflict<span class="o">)</span>
+│<span class="w">  </span>B2
+│<span class="w"> </span>○<span class="w">  </span>ovknlmro<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">15</span>:07:24<span class="w"> </span>7d7c6e6b
+├─╯<span class="w">  </span>B1
+○<span class="w">  </span>nuvyytnq<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">15</span>:07:05<span class="w"> </span>5dda2f09
+│<span class="w">  </span>A
+│<span class="w"> </span>○<span class="w">  </span>kntqzsqt<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">14</span>:56:59<span class="w"> </span>5d39e19d
+├─╯<span class="w">  </span>Say<span class="w"> </span>goodbye
+◆<span class="w">  </span>orrkosyo<span class="w"> </span>octocat@nowhere.com<span class="w"> </span><span class="m">2012</span>-03-06<span class="w"> </span><span class="m">15</span>:06:50<span class="w"> </span>master<span class="w"> </span>7fd1a60b
+│<span class="w">  </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>Merge<span class="w"> </span>pull<span class="w"> </span>request<span class="w"> </span><span class="c1">#6 from Spaceghost/patch-1</span>
 ~
-```</p>
+</code></pre></div>
 <p>As you can perhaps see, that undid the <code>jj squash</code> invocation we used for
 squashing the conflict resolution into commit B2 earlier. Notice that it also
 updated the working copy.</p>
@@ -2325,28 +2420,30 @@ into one. There are several other commands for changing the contents of existing
 commits.</p>
 <p>We'll need some more complex content to test these commands, so let's create a
 few more commits:</p>
-<p>```shell
-$ jj new master -m abc; printf 'a\nb\nc\n' &gt; file
-Working copy  (@) now at: ztqrpvnw f94e49cf (empty) abc
-Parent commit (@-)      : orrkosyo 7fd1a60b master | (empty) Merge pull request #6 from Spaceghost/patch-1
-Added 0 files, modified 0 files, removed 1 files</p>
-<p>$ jj new -m ABC; printf 'A\nB\nc\n' &gt; file
-Working copy  (@) now at: kwtuwqnm 6f30cd1f (empty) ABC
-Parent commit (@-)      : ztqrpvnw 51002261 abc</p>
-<p>$ jj new -m ABCD; printf 'A\nB\nC\nD\n' &gt; file
-Working copy  (@) now at: mrxqplyk a6749154 (empty) ABCD
-Parent commit (@-)      : kwtuwqnm 30aecc08 ABC</p>
-<p>$ jj log -r master::@
-@  mrxqplyk martinvonz@google.com 2023-02-12 19:38:21 b98c607b
-│  ABCD
-○  kwtuwqnm martinvonz@google.com 2023-02-12 19:38:12 30aecc08
-│  ABC
-○  ztqrpvnw martinvonz@google.com 2023-02-12 19:38:03 51002261
-│  abc
-◆  orrkosyo octocat@nowhere.com 2012-03-06 15:06:50 master 7fd1a60b
-│  (empty) Merge pull request #6 from Spaceghost/patch-1
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>jj<span class="w"> </span>new<span class="w"> </span>master<span class="w"> </span>-m<span class="w"> </span>abc<span class="p">;</span><span class="w"> </span><span class="nb">printf</span><span class="w"> </span><span class="s1">&#39;a\nb\nc\n&#39;</span><span class="w"> </span>&gt;<span class="w"> </span>file
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>now<span class="w"> </span>at:<span class="w"> </span>ztqrpvnw<span class="w"> </span>f94e49cf<span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>abc
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span><span class="w">      </span>:<span class="w"> </span>orrkosyo<span class="w"> </span>7fd1a60b<span class="w"> </span>master<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>Merge<span class="w"> </span>pull<span class="w"> </span>request<span class="w"> </span><span class="c1">#6 from Spaceghost/patch-1</span>
+Added<span class="w"> </span><span class="m">0</span><span class="w"> </span>files,<span class="w"> </span>modified<span class="w"> </span><span class="m">0</span><span class="w"> </span>files,<span class="w"> </span>removed<span class="w"> </span><span class="m">1</span><span class="w"> </span>files
+
+$<span class="w"> </span>jj<span class="w"> </span>new<span class="w"> </span>-m<span class="w"> </span>ABC<span class="p">;</span><span class="w"> </span><span class="nb">printf</span><span class="w"> </span><span class="s1">&#39;A\nB\nc\n&#39;</span><span class="w"> </span>&gt;<span class="w"> </span>file
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>now<span class="w"> </span>at:<span class="w"> </span>kwtuwqnm<span class="w"> </span>6f30cd1f<span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>ABC
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span><span class="w">      </span>:<span class="w"> </span>ztqrpvnw<span class="w"> </span><span class="m">51002261</span><span class="w"> </span>abc
+
+$<span class="w"> </span>jj<span class="w"> </span>new<span class="w"> </span>-m<span class="w"> </span>ABCD<span class="p">;</span><span class="w"> </span><span class="nb">printf</span><span class="w"> </span><span class="s1">&#39;A\nB\nC\nD\n&#39;</span><span class="w"> </span>&gt;<span class="w"> </span>file
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>now<span class="w"> </span>at:<span class="w"> </span>mrxqplyk<span class="w"> </span>a6749154<span class="w"> </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>ABCD
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span><span class="w">      </span>:<span class="w"> </span>kwtuwqnm<span class="w"> </span>30aecc08<span class="w"> </span>ABC
+
+$<span class="w"> </span>jj<span class="w"> </span>log<span class="w"> </span>-r<span class="w"> </span>master::@
+@<span class="w">  </span>mrxqplyk<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">19</span>:38:21<span class="w"> </span>b98c607b
+│<span class="w">  </span>ABCD
+○<span class="w">  </span>kwtuwqnm<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">19</span>:38:12<span class="w"> </span>30aecc08
+│<span class="w">  </span>ABC
+○<span class="w">  </span>ztqrpvnw<span class="w"> </span>martinvonz@google.com<span class="w"> </span><span class="m">2023</span>-02-12<span class="w"> </span><span class="m">19</span>:38:03<span class="w"> </span><span class="m">51002261</span>
+│<span class="w">  </span>abc
+◆<span class="w">  </span>orrkosyo<span class="w"> </span>octocat@nowhere.com<span class="w"> </span><span class="m">2012</span>-03-06<span class="w"> </span><span class="m">15</span>:06:50<span class="w"> </span>master<span class="w"> </span>7fd1a60b
+│<span class="w">  </span><span class="o">(</span>empty<span class="o">)</span><span class="w"> </span>Merge<span class="w"> </span>pull<span class="w"> </span>request<span class="w"> </span><span class="c1">#6 from Spaceghost/patch-1</span>
 ~
-```</p>
+</code></pre></div>
 <p>We "forgot" to capitalize "c" in the second commit when we capitalized the other
 letters. We then fixed that in the third commit when we also added "D". It would
 be cleaner to move the capitalization of "c" into the second commit. We can do
@@ -2354,12 +2451,12 @@ that by running <code>jj squash</code> with the <code>--interactive</code>/<code
 commit. Remember that <code>jj squash</code> moves all the changes from one commit into its
 parent. <code>jj squash -i</code> moves only part of the changes into its parent. Now try
 that:</p>
-<p><code>shell
-$ jj squash -i
-Hint: Using default editor ':builtin'; run `jj config set --user ui.diff-editor :builtin` to disable this message.
-Rebased 1 descendant commits
-Working copy  (@) now at: mrxqplyk 52a6c7fd ABCD
-Parent commit (@-)      : kwtuwqnm 643061ac ABC</code></p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>jj<span class="w"> </span>squash<span class="w"> </span>-i
+Hint:<span class="w"> </span>Using<span class="w"> </span>default<span class="w"> </span>editor<span class="w"> </span><span class="s1">&#39;:builtin&#39;</span><span class="p">;</span><span class="w"> </span>run<span class="w"> </span><span class="sb">`</span>jj<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--user<span class="w"> </span>ui.diff-editor<span class="w"> </span>:builtin<span class="sb">`</span><span class="w"> </span>to<span class="w"> </span>disable<span class="w"> </span>this<span class="w"> </span>message.
+Rebased<span class="w"> </span><span class="m">1</span><span class="w"> </span>descendant<span class="w"> </span>commits
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>now<span class="w"> </span>at:<span class="w"> </span>mrxqplyk<span class="w"> </span>52a6c7fd<span class="w"> </span>ABCD
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span><span class="w">      </span>:<span class="w"> </span>kwtuwqnm<span class="w"> </span>643061ac<span class="w"> </span>ABC
+</code></pre></div>
 <p>That will bring up the built-in diff editor<sup id="fnref:alternative_diff_editors"><a class="footnote-ref" href="#fn:alternative_diff_editors">1</a></sup> with a
 diff of the changes in the "ABCD" commit. Expand the file by clicking on <code>(+)</code>
 or with right arrow, then select the sections/line to include by clicking or
@@ -2368,19 +2465,19 @@ saving. You can also use the mouse to click on the menu items to see more
 options (keyboard navigation is currently limited).</p>
 <p>If we look at the diff of the second commit, we now see that all three lines got
 capitalized:</p>
-<p><code>shell
-$ jj diff -r @- --git
-diff --git a/file b/file
-index de980441c3..b1e67221af 100644
---- a/file
-+++ b/file
-@@ -1,3 +1,3 @@
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>jj<span class="w"> </span>diff<span class="w"> </span>-r<span class="w"> </span>@-<span class="w"> </span>--git
+diff<span class="w"> </span>--git<span class="w"> </span>a/file<span class="w"> </span>b/file
+index<span class="w"> </span>de980441c3..b1e67221af<span class="w"> </span><span class="m">100644</span>
+---<span class="w"> </span>a/file
++++<span class="w"> </span>b/file
+@@<span class="w"> </span>-1,3<span class="w"> </span>+1,3<span class="w"> </span>@@
 -a
 -b
 -c
 +A
 +B
-+C</code></p>
++C
+</code></pre></div>
 <p>The child change ("ABCD" in our case) will have the same content <em>state</em> after
 the <code>jj squash</code> command. That means that you can move any changes you want into
 the parent change, even if they touch the same word, and it won't cause any
@@ -2388,23 +2485,23 @@ conflicts.</p>
 <p>Let's try one final command for changing the contents of an existing commit. That
 command is <code>jj diffedit</code>, which lets you edit the changes in a commit without
 checking it out.</p>
-<p><code>shell
-$ jj diffedit -r @-
-Hint: Using default editor ':builtin'; run `jj config set --user ui.diff-editor :builtin` to disable this message.
-Rebased 1 descendant commits
-Working copy  (@) now at: mrxqplyk 1c72cd50 (conflict) ABCD
-Parent commit (@-)      : kwtuwqnm 70985eaa ABC
-Added 0 files, modified 1 files, removed 0 files
-Warning: There are unresolved conflicts at these paths:
-file    2-sided conflict
-New conflicts appeared in 1 commits:
-  mrxqplyk 1c72cd50 (conflict) ABCD
-Hint: To resolve the conflicts, start by creating a commit on top of
-the conflicted commit:
-  jj new mrxqplyk
-Then use `jj resolve`, or edit the conflict markers in the file directly.
-Once the conflicts are resolved, you can inspect the result with `jj diff`.
-Then run `jj squash` to move the resolution into the conflicted commit.</code></p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>jj<span class="w"> </span>diffedit<span class="w"> </span>-r<span class="w"> </span>@-
+Hint:<span class="w"> </span>Using<span class="w"> </span>default<span class="w"> </span>editor<span class="w"> </span><span class="s1">&#39;:builtin&#39;</span><span class="p">;</span><span class="w"> </span>run<span class="w"> </span><span class="sb">`</span>jj<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--user<span class="w"> </span>ui.diff-editor<span class="w"> </span>:builtin<span class="sb">`</span><span class="w"> </span>to<span class="w"> </span>disable<span class="w"> </span>this<span class="w"> </span>message.
+Rebased<span class="w"> </span><span class="m">1</span><span class="w"> </span>descendant<span class="w"> </span>commits
+Working<span class="w"> </span>copy<span class="w">  </span><span class="o">(</span>@<span class="o">)</span><span class="w"> </span>now<span class="w"> </span>at:<span class="w"> </span>mrxqplyk<span class="w"> </span>1c72cd50<span class="w"> </span><span class="o">(</span>conflict<span class="o">)</span><span class="w"> </span>ABCD
+Parent<span class="w"> </span>commit<span class="w"> </span><span class="o">(</span>@-<span class="o">)</span><span class="w">      </span>:<span class="w"> </span>kwtuwqnm<span class="w"> </span>70985eaa<span class="w"> </span>ABC
+Added<span class="w"> </span><span class="m">0</span><span class="w"> </span>files,<span class="w"> </span>modified<span class="w"> </span><span class="m">1</span><span class="w"> </span>files,<span class="w"> </span>removed<span class="w"> </span><span class="m">0</span><span class="w"> </span>files
+Warning:<span class="w"> </span>There<span class="w"> </span>are<span class="w"> </span>unresolved<span class="w"> </span>conflicts<span class="w"> </span>at<span class="w"> </span>these<span class="w"> </span>paths:
+file<span class="w">    </span><span class="m">2</span>-sided<span class="w"> </span>conflict
+New<span class="w"> </span>conflicts<span class="w"> </span>appeared<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="m">1</span><span class="w"> </span>commits:
+<span class="w">  </span>mrxqplyk<span class="w"> </span>1c72cd50<span class="w"> </span><span class="o">(</span>conflict<span class="o">)</span><span class="w"> </span>ABCD
+Hint:<span class="w"> </span>To<span class="w"> </span>resolve<span class="w"> </span>the<span class="w"> </span>conflicts,<span class="w"> </span>start<span class="w"> </span>by<span class="w"> </span>creating<span class="w"> </span>a<span class="w"> </span>commit<span class="w"> </span>on<span class="w"> </span>top<span class="w"> </span>of
+the<span class="w"> </span>conflicted<span class="w"> </span>commit:
+<span class="w">  </span>jj<span class="w"> </span>new<span class="w"> </span>mrxqplyk
+Then<span class="w"> </span>use<span class="w"> </span><span class="sb">`</span>jj<span class="w"> </span>resolve<span class="sb">`</span>,<span class="w"> </span>or<span class="w"> </span>edit<span class="w"> </span>the<span class="w"> </span>conflict<span class="w"> </span>markers<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>file<span class="w"> </span>directly.
+Once<span class="w"> </span>the<span class="w"> </span>conflicts<span class="w"> </span>are<span class="w"> </span>resolved,<span class="w"> </span>you<span class="w"> </span>can<span class="w"> </span>inspect<span class="w"> </span>the<span class="w"> </span>result<span class="w"> </span>with<span class="w"> </span><span class="sb">`</span>jj<span class="w"> </span>diff<span class="sb">`</span>.
+Then<span class="w"> </span>run<span class="w"> </span><span class="sb">`</span>jj<span class="w"> </span>squash<span class="sb">`</span><span class="w"> </span>to<span class="w"> </span>move<span class="w"> </span>the<span class="w"> </span>resolution<span class="w"> </span>into<span class="w"> </span>the<span class="w"> </span>conflicted<span class="w"> </span>commit.
+</code></pre></div>
 <p>In the diff editor, use the arrow keys and spacebar to select all lines but the
 last. Press 'c' to save the changes and close it. You can now inspect the
 rewritten commit with <code>jj diff -r @-</code> again, and you should see your deletion of

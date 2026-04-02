@@ -7511,9 +7511,9 @@ should not be broken.</p>
 <li>
 <p>The config options <code>git.auto-local-bookmark</code> and <code>git.push-new-bookmarks</code> are
   deprecated in favor of <code>remotes.&lt;name&gt;.auto-track-bookmarks</code>. For example:</p>
-<p><code>toml
-[remotes.origin]
-auto-track-bookmarks = "glob:*"</code></p>
+<div class="highlight"><pre><span></span><code><span class="k">[remotes.origin]</span>
+<span class="n">auto-track-bookmarks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;glob:*&quot;</span>
+</code></pre></div>
 <p>For more details, refer to
 <a href="../config/#automatic-tracking-of-bookmarks">the docs</a>.</p>
 </li>
@@ -7522,9 +7522,9 @@ auto-track-bookmarks = "glob:*"</code></p>
   bookmarks, please track them with <code>jj bookmark track</code>. Alternatively, consider
   setting up an auto-tracking configuration to avoid the chore of tracking
   bookmarks manually. For example:</p>
-<p><code>toml
-[remotes.origin]
-auto-track-bookmarks = "glob:*"</code></p>
+<div class="highlight"><pre><span></span><code><span class="k">[remotes.origin]</span>
+<span class="n">auto-track-bookmarks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;glob:*&quot;</span>
+</code></pre></div>
 <p>For more details, refer to
 <a href="../config/#automatic-tracking-of-bookmarks">the docs</a>.</p>
 </li>

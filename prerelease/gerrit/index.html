@@ -436,6 +436,90 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#basic-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic workflow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Basic workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#upload-a-single-change" class="md-nav__link">
+    <span class="md-ellipsis">
+      Upload a single change
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#selecting-revisions-revsets" class="md-nav__link">
+    <span class="md-ellipsis">
+      Selecting revisions (revsets)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Selecting revisions (revsets)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#preview-without-pushing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Preview without pushing
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#target-branch-and-remote-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Target branch and remote selection
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#updating-changes-after-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      Updating changes after review
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#change-id-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Change-Id management
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alternative-link-trailer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Alternative Link trailer
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1877,6 +1961,90 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#basic-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic workflow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Basic workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#upload-a-single-change" class="md-nav__link">
+    <span class="md-ellipsis">
+      Upload a single change
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#selecting-revisions-revsets" class="md-nav__link">
+    <span class="md-ellipsis">
+      Selecting revisions (revsets)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Selecting revisions (revsets)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#preview-without-pushing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Preview without pushing
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#target-branch-and-remote-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Target branch and remote selection
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#updating-changes-after-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      Updating changes after review
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#change-id-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Change-Id management
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alternative-link-trailer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Alternative Link trailer
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1916,21 +2084,22 @@ time, exactly how Gerrit wants you to work.</p>
 starting from an existing Git repository with Gerrit remotes already configured,
 you can use <code>jj git init --colocate</code> to start using JJ in that repo. Otherwise,
 set up your Gerrit remote.</p>
-<p>```shell</p>
-<h1 id="option-1-start-jj-in-an-existing-git-repo-with-gerrit-remotes">Option 1: Start JJ in an existing Git repo with Gerrit remotes<a class="headerlink" href="#option-1-start-jj-in-an-existing-git-repo-with-gerrit-remotes" title="Permanent link">&para;</a></h1>
-<p>$ jj git init --colocate</p>
-<h1 id="option-2-add-a-gerrit-remote-to-a-jj-repo">Option 2: Add a Gerrit remote to a JJ repo<a class="headerlink" href="#option-2-add-a-gerrit-remote-to-a-jj-repo" title="Permanent link">&para;</a></h1>
-<p>$ jj git remote add gerrit https://review.gerrithub.io/yourname/yourproject</p>
-<h1 id="option-3-clone-the-repo-via-jj">Option 3: Clone the repo via jj<a class="headerlink" href="#option-3-clone-the-repo-via-jj" title="Permanent link">&para;</a></h1>
-<p>$ jj git clone https://review.gerrithub.io/your/project
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Option 1: Start JJ in an existing Git repo with Gerrit remotes</span>
+$<span class="w"> </span>jj<span class="w"> </span>git<span class="w"> </span>init<span class="w"> </span>--colocate
+
+<span class="c1"># Option 2: Add a Gerrit remote to a JJ repo</span>
+$<span class="w"> </span>jj<span class="w"> </span>git<span class="w"> </span>remote<span class="w"> </span>add<span class="w"> </span>gerrit<span class="w"> </span>https://review.gerrithub.io/yourname/yourproject
+
+<span class="c1"># Option 3: Clone the repo via jj</span>
+$<span class="w"> </span>jj<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://review.gerrithub.io/your/project
+</code></pre></div>
 <p>If you used option 2, you can configure default values in your repository config
 by appending the following lines to your config file, like so (to do this for
 a specific repo, run <code>jj config edit --repo</code>):</p>
-<p><code>toml
-[gerrit]
-default-remote = "gerrit"       # name of the Git remote to push to
-default-remote-branch = "main"  # target branch in Gerrit</code></p>
+<div class="highlight"><pre><span></span><code><span class="k">[gerrit]</span>
+<span class="n">default-remote</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;gerrit&quot;</span><span class="w">       </span><span class="c1"># name of the Git remote to push to</span>
+<span class="n">default-remote-branch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;main&quot;</span><span class="w">  </span><span class="c1"># target branch in Gerrit</span>
+</code></pre></div>
 <h2 id="basic-workflow">Basic workflow<a class="headerlink" href="#basic-workflow" title="Permanent link">&para;</a></h2>
 <p><code>jj gerrit upload</code> takes one or more revsets, and uploads the stack of commits
 ending in them to Gerrit. Each JJ change will map to a single Gerrit change
@@ -1944,12 +2113,12 @@ you re-upload a commit with the same <code>Change-Id</code>, Gerrit creates a ne
 set.</p>
 </blockquote>
 <h3 id="upload-a-single-change">Upload a single change<a class="headerlink" href="#upload-a-single-change" title="Permanent link">&para;</a></h3>
-<p>```shell</p>
-<h1 id="upload-if-it-has-a-description-otherwise-uploads-">Upload @ if it has a description, otherwise uploads @-<a class="headerlink" href="#upload-if-it-has-a-description-otherwise-uploads-" title="Permanent link">&para;</a></h1>
-<p>$ jj gerrit upload</p>
-<h1 id="or-explicitly-specify-a-revision-to-upload">Or explicitly specify a revision to upload.<a class="headerlink" href="#or-explicitly-specify-a-revision-to-upload" title="Permanent link">&para;</a></h1>
-<p>$ jj gerrit upload -r @-
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Upload @ if it has a description, otherwise uploads @-</span>
+$<span class="w"> </span>jj<span class="w"> </span>gerrit<span class="w"> </span>upload
+
+<span class="c1"># Or explicitly specify a revision to upload.</span>
+$<span class="w"> </span>jj<span class="w"> </span>gerrit<span class="w"> </span>upload<span class="w"> </span>-r<span class="w"> </span>@-
+</code></pre></div>
 <h2 id="selecting-revisions-revsets">Selecting revisions (revsets)<a class="headerlink" href="#selecting-revisions-revsets" title="Permanent link">&para;</a></h2>
 <p><code>jj gerrit upload</code> accepts one or more <code>-r/--revisions</code> arguments. Each argument
 may expand to multiple commits. Common patterns:</p>
@@ -1961,8 +2130,8 @@ may expand to multiple commits. Common patterns:</p>
 <h3 id="preview-without-pushing">Preview without pushing<a class="headerlink" href="#preview-without-pushing" title="Permanent link">&para;</a></h3>
 <p>Use <code>--dry-run</code> to see which commits would be modified and pushed, and where,
 without changing anything or contacting the remote.</p>
-<p><code>shell
-$ jj gerrit upload -r '@-' --remote-branch main --dry-run</code></p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>jj<span class="w"> </span>gerrit<span class="w"> </span>upload<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;@-&#39;</span><span class="w"> </span>--remote-branch<span class="w"> </span>main<span class="w"> </span>--dry-run
+</code></pre></div>
 <h2 id="target-branch-and-remote-selection">Target branch and remote selection<a class="headerlink" href="#target-branch-and-remote-selection" title="Permanent link">&para;</a></h2>
 <p>There are a few way of specifying the target remote for your projects:</p>
 <ul>
@@ -1984,12 +2153,11 @@ $ jj gerrit upload -r '@-' --remote-branch main --dry-run</code></p>
 upload</code> again with the same revsets. Gerrit will add new patch sets to the
 existing changes instead of creating new ones.</p>
 <p>Examples:</p>
-<p>```shell</p>
-<h1 id="edit-an-earlier-commit-in-the-stack">Edit an earlier commit in the stack<a class="headerlink" href="#edit-an-earlier-commit-in-the-stack" title="Permanent link">&para;</a></h1>
-<p>$ jj edit xcv  # position on the stack to edit
- --- Apply needed edits ---
-$ jj gerrit upload -r xcv
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Edit an earlier commit in the stack</span>
+$<span class="w"> </span>jj<span class="w"> </span>edit<span class="w"> </span>xcv<span class="w">  </span><span class="c1"># position on the stack to edit</span>
+<span class="w"> </span>---<span class="w"> </span>Apply<span class="w"> </span>needed<span class="w"> </span>edits<span class="w"> </span>---
+$<span class="w"> </span>jj<span class="w"> </span>gerrit<span class="w"> </span>upload<span class="w"> </span>-r<span class="w"> </span>xcv
+</code></pre></div>
 <h2 id="change-id-management"><code>Change-Id</code> management<a class="headerlink" href="#change-id-management" title="Permanent link">&para;</a></h2>
 <p>If you do not provide an explicit <code>Change-Id</code> footer in your commits,
 <code>jj gerrit upload</code> will generate a transient one for you based on your JJ
@@ -2007,14 +2175,14 @@ description to directly assign a JJ change to an exist Gerrit change.</p>
 <p>As an alternative to <code>jj gerrit upload</code>'s automatic <code>Change-Id</code> mapping, you
 can configure JJ to automatically add <code>Change-Id</code> footers to all change
 descriptions:</p>
-<p><code>toml
-[templates]
-commit_trailers = '''
-if(
-  !trailers.contains_key("Change-Id"),
-  format_gerrit_change_id_trailer(self)
-)
-'''</code></p>
+<div class="highlight"><pre><span></span><code><span class="k">[templates]</span>
+<span class="n">commit_trailers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">if(</span>
+<span class="s1">  !trailers.contains_key(&quot;Change-Id&quot;),</span>
+<span class="s1">  format_gerrit_change_id_trailer(self)</span>
+<span class="s1">)</span>
+<span class="s1">&#39;&#39;&#39;</span>
+</code></pre></div>
 <p>In this case, the Gerrit change mapping is defined entirely by the <code>Change-Id</code>
 footers. When splitting or squashing changes, be sure to keep the <code>Change-Id</code>
 footers associated with the desired changes. Be sure not to duplicate the same

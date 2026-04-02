@@ -1693,6 +1693,102 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Command Syntax">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#canonicalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Canonicalization
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#working-copy-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      Working Copy Map
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Working Copy Map">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command-syntax_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command Syntax
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#versioning-and-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Versioning and Storage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Versioning and Storage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#view-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      View Updates
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appendix" class="md-nav__link">
+    <span class="md-ellipsis">
+      Appendix
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Appendix">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#related-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      Related Work
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#patterns-via-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Patterns via configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -1936,6 +2032,102 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Command Syntax">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#canonicalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Canonicalization
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#working-copy-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      Working Copy Map
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Working Copy Map">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command-syntax_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command Syntax
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#versioning-and-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Versioning and Storage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Versioning and Storage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#view-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      View Updates
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appendix" class="md-nav__link">
+    <span class="md-ellipsis">
+      Appendix
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Appendix">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#related-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      Related Work
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#patterns-via-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Patterns via configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -1983,9 +2175,9 @@ and custom implementations. This includes three main goals:</p>
 </ol>
 <h2 id="current-state-as-of-jj-0130">Current State (as of jj 0.13.0)<a class="headerlink" href="#current-state-as-of-jj-0130" title="Permanent link">&para;</a></h2>
 <p>Sparse patterns are an effectively unordered list of prefix strings:</p>
-<p><code>txt
-path/one
-path/to/dir/two</code></p>
+<div class="highlight"><pre><span></span><code>path/one
+path/to/dir/two
+</code></pre></div>
 <p>The <em>set</em> of files identified by the Sparse Patterns is all paths which match
 any provided prefix. This governs what gets materialized in the working copy on
 checkout, and what is updated on snapshot. The set is stored in working copy
@@ -1997,57 +2189,59 @@ path remappings.</p>
 <p>Sparse Patterns v2 will be stored as objects in the Op Store, referenced
 by a <code>WorkingCopyPatternsId</code> from the active <code>View</code>. They will have a new,
 ordered structure which can fully represent previous patterns.</p>
-<p>```rust
-/// Analogues of RepoPath, specifically describing paths in the working copy.
-struct WorkingCopyPathBuf {
-    String
-}
-struct WorkingCopyPath {
-    str
-}</p>
-<p>pub enum SparsePatternsPathType {
-    Dir,    // Everything under <path>/...
-    Files,  // Files under <path>/*
-    Exact,  // <path> exactly
-}</p>
-<p>pub struct SparsePatternsPath {
-    path_type: SparsePatternsPathType,
-    include: bool,  // True if included, false if excluded.
-    path: RepoPathBuf,
-}</p>
-<p>pub struct WorkingCopyMapping {
-    src_path: RepoPathBuf,
-    dst_path: WorkingCopyPathBuf,
-    recursive: bool,  // If false, only immediate children of src_path (files) are renamed.
-}</p>
-<p>pub struct WorkingCopyPatterns {
-    sparse_paths: Vec<SparsePatternsPath>,
-    mappings: Vec<WorkingCopyMapping>,
-}</p>
-<p>pub trait OpStore {
-    ...
-    pub fn read_working_copy_patterns(&amp;self, id: &amp;WorkingCopyPatternsId) -&gt; OpStoreResult<WorkingCopyPatterns> { ... }
-    pub fn write_working_copy_patterns(&amp;self, sparse_patterns: &amp;WorkingCopyPatterns) -&gt; OpStoreResult<WorkingCopyPatternsId> { .. }
-}
-```</p>
+<div class="highlight"><pre><span></span><code><span class="sd">/// Analogues of RepoPath, specifically describing paths in the working copy.</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">WorkingCopyPathBuf</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nb">String</span>
+<span class="p">}</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">WorkingCopyPath</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">str</span>
+<span class="p">}</span>
+
+<span class="k">pub</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="nc">SparsePatternsPathType</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">Dir</span><span class="p">,</span><span class="w">    </span><span class="c1">// Everything under &lt;path&gt;/...</span>
+<span class="w">    </span><span class="n">Files</span><span class="p">,</span><span class="w">  </span><span class="c1">// Files under &lt;path&gt;/*</span>
+<span class="w">    </span><span class="n">Exact</span><span class="p">,</span><span class="w">  </span><span class="c1">// &lt;path&gt; exactly</span>
+<span class="p">}</span>
+
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">SparsePatternsPath</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">path_type</span><span class="p">:</span><span class="w"> </span><span class="nc">SparsePatternsPathType</span><span class="p">,</span>
+<span class="w">    </span><span class="n">include</span><span class="p">:</span><span class="w"> </span><span class="kt">bool</span><span class="p">,</span><span class="w">  </span><span class="c1">// True if included, false if excluded.</span>
+<span class="w">    </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nc">RepoPathBuf</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">WorkingCopyMapping</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">src_path</span><span class="p">:</span><span class="w"> </span><span class="nc">RepoPathBuf</span><span class="p">,</span>
+<span class="w">    </span><span class="n">dst_path</span><span class="p">:</span><span class="w"> </span><span class="nc">WorkingCopyPathBuf</span><span class="p">,</span>
+<span class="w">    </span><span class="n">recursive</span><span class="p">:</span><span class="w"> </span><span class="kt">bool</span><span class="p">,</span><span class="w">  </span><span class="c1">// If false, only immediate children of src_path (files) are renamed.</span>
+<span class="p">}</span>
+
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">WorkingCopyPatterns</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">sparse_paths</span><span class="p">:</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="n">SparsePatternsPath</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="w">    </span><span class="n">mappings</span><span class="p">:</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="n">WorkingCopyMapping</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="k">pub</span><span class="w"> </span><span class="k">trait</span><span class="w"> </span><span class="n">OpStore</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="o">..</span><span class="p">.</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">read_working_copy_patterns</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">id</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">WorkingCopyPatternsId</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nc">OpStoreResult</span><span class="o">&lt;</span><span class="n">WorkingCopyPatterns</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">write_working_copy_patterns</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">sparse_patterns</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">WorkingCopyPatterns</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nc">OpStoreResult</span><span class="o">&lt;</span><span class="n">WorkingCopyPatternsId</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
 <p>To support these more complex behaviors, a new <code>WorkingCopyPatterns</code> trait will
 be introduced, initially only as a thin wrapper around the existing prefix
 format, but soon to be expanded with richer types and functionality.</p>
-<p>```rust
-impl WorkingCopyPatterns {
-    pub fn to_matcher(&amp;self) -&gt; Box<dyn Matcher> {
-        ...
-    }</p>
-<div class="codehilite"><pre><span></span><code>...
-</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="k">impl</span><span class="w"> </span><span class="n">WorkingCopyPatterns</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">to_matcher</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Box</span><span class="o">&lt;</span><span class="k">dyn</span><span class="w"> </span><span class="n">Matcher</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="o">..</span><span class="p">.</span>
+<span class="w">    </span><span class="p">}</span>
 
-<p>}
-```</p>
+<span class="w">    </span><span class="o">..</span><span class="p">.</span>
+<span class="p">}</span>
+</code></pre></div>
 <h3 id="command-syntax">Command Syntax<a class="headerlink" href="#command-syntax" title="Permanent link">&para;</a></h3>
 <p><code>SparsePatternsPath</code> rules can be specified on the CLI and in an editor via a
 compact syntax:</p>
-<p><code>txt
-(include|exclude):(dir|files|exact):&lt;path&gt;</code></p>
+<div class="highlight"><pre><span></span><code>(include|exclude):(dir|files|exact):&lt;path&gt;
+</code></pre></div>
 <p>If both prefix terms are omitted, then <code>include:dir:</code> is assumed. If any prefix
 is specified, both must be specified. The editor and CLI will both accept path
 rules in either format going forward.</p>
@@ -2062,45 +2256,47 @@ the set of files to be included. Every <code>--add</code> command will append to
 this list before the patterns are canonicalized. Whether a file is included is
 determined by the first matching rule in reverse order.</p>
 <p>For example:</p>
-<p><code>txt
-include:dir:foo
+<div class="highlight"><pre><span></span><code>include:dir:foo
 exclude:dir:foo/bar
 include:dir:foo/bar/baz
-exclude:dir:foo/bar/baz/qux</code></p>
+exclude:dir:foo/bar/baz/qux
+</code></pre></div>
 <p>Produces rule set which includes "foo/file.txt", excludes "foo/bar/file.txt",
 includes "foo/bar/baz/file.txt", and excludes "foo/bar/baz/qux/file.txt".</p>
 <p>If the rules are subtly re-ordered, they become canonicalized to a smaller, but
 functionally equivalent form:</p>
-<p>```txt</p>
-<h1 id="before">Before<a class="headerlink" href="#before" title="Permanent link">&para;</a></h1>
-<p>include:dir:foo
+<div class="highlight"><pre><span></span><code># Before
+include:dir:foo
 exclude:dir:foo/bar/baz/qux
 include:dir:foo/bar/baz
-exclude:dir:foo/bar</p>
-<h1 id="canonicalized">Canonicalized<a class="headerlink" href="#canonicalized" title="Permanent link">&para;</a></h1>
-<p>include:dir:foo
 exclude:dir:foo/bar
-```</p>
+
+# Canonicalized
+include:dir:foo
+exclude:dir:foo/bar
+</code></pre></div>
 <h4 id="canonicalization">Canonicalization<a class="headerlink" href="#canonicalization" title="Permanent link">&para;</a></h4>
 <p>There are many ways to represent functionally equivalent <code>WorkingCopyPatterns</code>.
 For instance, the following 4 rule sets are all functionally equivalent:</p>
-<p>```txt</p>
-<h1 id="set-1">Set 1<a class="headerlink" href="#set-1" title="Permanent link">&para;</a></h1>
-<p>include:dir:bar
-include:dir:foo</p>
-<h1 id="set-2">Set 2<a class="headerlink" href="#set-2" title="Permanent link">&para;</a></h1>
-<p>include:dir:foo
-include:dir:bar</p>
-<h1 id="set-3">Set 3<a class="headerlink" href="#set-3" title="Permanent link">&para;</a></h1>
-<p>include:dir:bar
+<div class="highlight"><pre><span></span><code># Set 1
+include:dir:bar
+include:dir:foo
+
+# Set 2
+include:dir:foo
+include:dir:bar
+
+# Set 3
+include:dir:bar
 include:dir:bar/baz/qux
-include:dir:foo</p>
-<h1 id="set-4">Set 4<a class="headerlink" href="#set-4" title="Permanent link">&para;</a></h1>
-<p>include:dir:foo
+include:dir:foo
+
+# Set 4
+include:dir:foo
 exclude:dir:foo/baz
 include:dir:bar
 include:dir:foo/baz
-```</p>
+</code></pre></div>
 <p>Because these patterns are stored in the Op Store now, it is useful for all of
 these representations to be rewritten into a minimal, canonical form before
 serialization. In this case, <code>Set 1</code> will be the canonical set. The canonical
@@ -2119,12 +2315,12 @@ form of a <code>WorkingCopyPatterns</code> is defined as the form such that:</p>
 </div>
 <p>All <code>WorkingCopyPatterns</code> will come equipped with a default no-op mapping.
 These mappings are inspired by and similar to <a href="https://www.perforce.com/manuals/cmdref/Content/CmdRef/views.html">Perforce client views</a>.</p>
-<p><code>rust
-vec![WorkingCopyMapping {
-    src_path: RepoPathBuf::root(),
-    dst_path: WorkingCopyPathBuf::root(),
-    recursive: true,
-}]</code></p>
+<div class="highlight"><pre><span></span><code><span class="fm">vec!</span><span class="p">[</span><span class="n">WorkingCopyMapping</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">src_path</span><span class="p">:</span><span class="w"> </span><span class="nc">RepoPathBuf</span><span class="p">::</span><span class="n">root</span><span class="p">(),</span>
+<span class="w">    </span><span class="n">dst_path</span><span class="p">:</span><span class="w"> </span><span class="nc">WorkingCopyPathBuf</span><span class="p">::</span><span class="n">root</span><span class="p">(),</span>
+<span class="w">    </span><span class="n">recursive</span><span class="p">:</span><span class="w"> </span><span class="nc">true</span><span class="p">,</span>
+<span class="p">}]</span>
+</code></pre></div>
 <p><code>WorkingCopyPatterns</code> will provide an interface to map working copy paths into
 repo paths and vice versa. The `WorkingCopy`` trait will apply this mapping to
 all snapshot and checkout operations, and jj commands which accept relative
@@ -2149,8 +2345,8 @@ be thought of as always <em>after</em> the sparse operation.</p>
 </ul>
 <p>Like sparse paths, mappings will have a compact text syntax for editing in file
 form, or for adding a rule textually on the CLI:</p>
-<p><code>txt
-"&lt;from&gt;" -&gt; "&lt;to&gt;" [nonrecursive]</code></p>
+<div class="highlight"><pre><span></span><code>&quot;&lt;from&gt;&quot; -&gt; &quot;&lt;to&gt;&quot; [nonrecursive]
+</code></pre></div>
 <p>Like sparse paths, mapping rules are defined to apply in <em>order</em> and on any
 save operation will be modified to a minimal canonical form. Thus,
 <code>jj map set --from "" --to ""</code> will always completely wipe the map.
@@ -2182,17 +2378,17 @@ desired.</p>
 <p>The View object will be migrated to store working copy patterns via id. The
 indirection will save on storage since working copy patterns are not expected to
 change very frequently.</p>
-<p>```rust
-// Before:
-pub wc_commit_ids: HashMap<WorkspaceNameBuf, CommitId>,</p>
-<p>// After:
-pub struct WorkingCopyInfo {
-    pub commit_id: CommitId,
-    pub wc_patterns_id: WorkingCopyPatternsId,
-}
-...
-pub wc_info: HashMap<WorkspaceNameBuf, WorkingCopyInfo>,
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Before:</span>
+<span class="k">pub</span><span class="w"> </span><span class="n">wc_commit_ids</span><span class="p">:</span><span class="w"> </span><span class="nc">HashMap</span><span class="o">&lt;</span><span class="n">WorkspaceNameBuf</span><span class="p">,</span><span class="w"> </span><span class="n">CommitId</span><span class="o">&gt;</span><span class="p">,</span>
+
+<span class="c1">// After:</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">WorkingCopyInfo</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="n">commit_id</span><span class="p">:</span><span class="w"> </span><span class="nc">CommitId</span><span class="p">,</span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="n">wc_patterns_id</span><span class="p">:</span><span class="w"> </span><span class="nc">WorkingCopyPatternsId</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="o">..</span><span class="p">.</span>
+<span class="k">pub</span><span class="w"> </span><span class="n">wc_info</span><span class="p">:</span><span class="w"> </span><span class="nc">HashMap</span><span class="o">&lt;</span><span class="n">WorkspaceNameBuf</span><span class="p">,</span><span class="w"> </span><span class="n">WorkingCopyInfo</span><span class="o">&gt;</span><span class="p">,</span>
+</code></pre></div>
 <p>A View object with no stored working copy patterns will be modified at read
 time to include the current working copy patterns, thus all <code>read_view</code>
 operations will need to pass in the current working copy patterns for a

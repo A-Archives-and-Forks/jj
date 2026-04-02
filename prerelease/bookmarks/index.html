@@ -707,8 +707,62 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#listing-tracked-bookmarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Listing tracked bookmarks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automatic-tracking-of-bookmarks-auto-track-bookmarks-option" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatic tracking of bookmarks &amp; auto-track-bookmarks option
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bookmark-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bookmark updates
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pushing-bookmarks-safety-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pushing bookmarks: Safety checks
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conflicts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conflicts
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ease-of-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ease of use
+    </span>
+  </a>
   
 </li>
       
@@ -1974,8 +2028,62 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#listing-tracked-bookmarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Listing tracked bookmarks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automatic-tracking-of-bookmarks-auto-track-bookmarks-option" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatic tracking of bookmarks &amp; auto-track-bookmarks option
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bookmark-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bookmark updates
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pushing-bookmarks-safety-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pushing bookmarks: Safety checks
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conflicts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conflicts
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ease-of-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ease of use
+    </span>
+  </a>
   
 </li>
       
@@ -2080,33 +2188,32 @@ must match.</p>
 --remote=&lt;remote name&gt;</code>. It will now be imported as a local bookmark until you
 untrack it or it is deleted on the remote.</p>
 <p>Example:</p>
-<p><code>sh
-$ # List all available bookmarks, as we want our colleague's bookmark.
-$ jj bookmark list --all
-$ # Find the bookmark.
-$ # [...]
-$ # Actually track the bookmark.
-$ jj bookmark track &lt;bookmark name&gt; --remote=&lt;remote name&gt; # Example: jj bookmark track my-feature --remote=origin
-$ # From this point on, &lt;bookmark name&gt; will be imported when fetching from &lt;remote name&gt;.
-$ jj git fetch --remote &lt;remote name&gt;
-$ # A local bookmark &lt;bookmark name&gt; should have been created or updated while fetching.
-$ jj new &lt;bookmark name&gt; # Do some local testing, etc.</code></p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span><span class="c1"># List all available bookmarks, as we want our colleague&#39;s bookmark.</span>
+$<span class="w"> </span>jj<span class="w"> </span>bookmark<span class="w"> </span>list<span class="w"> </span>--all
+$<span class="w"> </span><span class="c1"># Find the bookmark.</span>
+$<span class="w"> </span><span class="c1"># [...]</span>
+$<span class="w"> </span><span class="c1"># Actually track the bookmark.</span>
+$<span class="w"> </span>jj<span class="w"> </span>bookmark<span class="w"> </span>track<span class="w"> </span>&lt;bookmark<span class="w"> </span>name&gt;<span class="w"> </span>--remote<span class="o">=</span>&lt;remote<span class="w"> </span>name&gt;<span class="w"> </span><span class="c1"># Example: jj bookmark track my-feature --remote=origin</span>
+$<span class="w"> </span><span class="c1"># From this point on, &lt;bookmark name&gt; will be imported when fetching from &lt;remote name&gt;.</span>
+$<span class="w"> </span>jj<span class="w"> </span>git<span class="w"> </span>fetch<span class="w"> </span>--remote<span class="w"> </span>&lt;remote<span class="w"> </span>name&gt;
+$<span class="w"> </span><span class="c1"># A local bookmark &lt;bookmark name&gt; should have been created or updated while fetching.</span>
+$<span class="w"> </span>jj<span class="w"> </span>new<span class="w"> </span>&lt;bookmark<span class="w"> </span>name&gt;<span class="w"> </span><span class="c1"># Do some local testing, etc.</span>
+</code></pre></div>
 <h3 id="untracking-a-bookmark">Untracking a bookmark<a class="headerlink" href="#untracking-a-bookmark" title="Permanent link">&para;</a></h3>
 <p>To stop following a remote bookmark, you can <code>jj bookmark untrack</code> it. After that,
 subsequent fetches of that remote will no longer move the local bookmark to match
 the position of the remote bookmark.</p>
 <p>Example:</p>
-<p>```sh
-$ # List all local and remote bookmarks.
-$ jj bookmark list --all
-$ # Find the bookmark we no longer want to track.
-$ # [...]</p>
-<h1 id="actually-untrack-it"># Actually untrack it.<a class="headerlink" href="#actually-untrack-it" title="Permanent link">&para;</a></h1>
-<p>$ jj bookmark untrack <bookmark name> --remote=<remote name> # Example: jj bookmark untrack stuff --remote=origin
-$ # From this point on, this remote bookmark won't be imported anymore.
-$ # The local bookmark (e.g. stuff) is unaffected. It may or may not still
-$ # be tracking bookmarks on other remotes (e.g. stuff@upstream).
-```</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span><span class="c1"># List all local and remote bookmarks.</span>
+$<span class="w"> </span>jj<span class="w"> </span>bookmark<span class="w"> </span>list<span class="w"> </span>--all
+$<span class="w"> </span><span class="c1"># Find the bookmark we no longer want to track.</span>
+$<span class="w"> </span><span class="c1"># [...]</span>
+<span class="c1"># # Actually untrack it.</span>
+$<span class="w"> </span>jj<span class="w"> </span>bookmark<span class="w"> </span>untrack<span class="w"> </span>&lt;bookmark<span class="w"> </span>name&gt;<span class="w"> </span>--remote<span class="o">=</span>&lt;remote<span class="w"> </span>name&gt;<span class="w"> </span><span class="c1"># Example: jj bookmark untrack stuff --remote=origin</span>
+$<span class="w"> </span><span class="c1"># From this point on, this remote bookmark won&#39;t be imported anymore.</span>
+$<span class="w"> </span><span class="c1"># The local bookmark (e.g. stuff) is unaffected. It may or may not still</span>
+$<span class="w"> </span><span class="c1"># be tracking bookmarks on other remotes (e.g. stuff@upstream).</span>
+</code></pre></div>
 <h3 id="listing-tracked-bookmarks">Listing tracked bookmarks<a class="headerlink" href="#listing-tracked-bookmarks" title="Permanent link">&para;</a></h3>
 <p>To list tracked bookmarks, you can <code>jj bookmark list --tracked</code> or <code>jj bookmark list -t</code>.
 This command omits local Git-tracking bookmarks by default.</p>

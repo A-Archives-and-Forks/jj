@@ -3062,7 +3062,8 @@ the backend caches the verification result.</p>
 <p class="admonition-title">Info</p>
 <p>As opposed to calling any of <code>.status()</code>, <code>.key()</code>, or <code>.display()</code>,
 checking for signature presence through boolean coercion is fast:
-<code>if(commit.signature(), "commit has a signature", "commit is unsigned")</code></p>
+<div class="highlight"><pre><span></span><code>if(commit.signature(), &quot;commit has a signature&quot;, &quot;commit is unsigned&quot;)
+</code></pre></div></p>
 </div>
 <h3 id="diffstatentry-type"><code>DiffStatEntry</code> type<a class="headerlink" href="#diffstatentry-type" title="Permanent link">&para;</a></h3>
 <p><em>Conversion: <code>Boolean</code>: no, <code>Serialize</code>: no, <code>Template</code>: no</em></p>
@@ -3389,17 +3390,17 @@ adds some labels automatically; they can also be added manually.</p>
 <p>Template fragments are usually <strong>automatically</strong> labeled with the command name,
 the context (or the top-level object), and the method names. For example, the
 following template is labeled as <code>op_log operation id short</code> automatically:</p>
-<p><code>sh
-jj op log -T 'self.id().short()'</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>op<span class="w"> </span>log<span class="w"> </span>-T<span class="w"> </span><span class="s1">&#39;self.id().short()&#39;</span>
+</code></pre></div>
 <p>The exact names of such labels are often straightforward, but are not currently
 documented. You can discover the actual label names used with the
 <code>--color=debug</code> option, e.g.</p>
-<p><code>sh
-jj op log -T 'self.id().short()' --color=debug</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>op<span class="w"> </span>log<span class="w"> </span>-T<span class="w"> </span><span class="s1">&#39;self.id().short()&#39;</span><span class="w"> </span>--color<span class="o">=</span>debug
+</code></pre></div>
 <p>Additionally, you can <strong>manually</strong> insert arbitrary labels using the
 <code>label(label, content)</code> function. For example,</p>
-<p><code>sh
-jj op log -T '"ID: " ++ self.id().short().substr(0, 1) ++ label("id short", "&lt;redacted&gt;")'</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>op<span class="w"> </span>log<span class="w"> </span>-T<span class="w"> </span><span class="s1">&#39;&quot;ID: &quot; ++ self.id().short().substr(0, 1) ++ label(&quot;id short&quot;, &quot;&lt;redacted&gt;&quot;)&#39;</span>
+</code></pre></div>
 <p>will print "ID:" in the default style, and the string <code>&lt;redacted&gt;</code> in the same
 style as the first character of the id. It would also be fine to use an
 arbitrary template instead of the string <code>"&lt;redacted&gt;"</code>, possibly including
@@ -3419,26 +3420,26 @@ aliases.</p>
 <p>Alias functions can be overloaded by the number of parameters. However, builtin
 functions will be shadowed by name, and can't co-exist with aliases.</p>
 <p>For example:</p>
-<p><code>toml
-[template-aliases]
-'commit_change_ids' = '''
-concat(
-  format_field("Commit ID", commit_id),
-  format_field("Change ID", change_id),
-)
-'''
-'format_field(key, value)' = 'key ++ ": " ++ value ++ "\n"'
-'json:x' = 'json(x) ++ "\n"'</code></p>
+<div class="highlight"><pre><span></span><code><span class="k">[template-aliases]</span>
+<span class="s1">&#39;commit_change_ids&#39;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">concat(</span>
+<span class="s1">  format_field(&quot;Commit ID&quot;, commit_id),</span>
+<span class="s1">  format_field(&quot;Change ID&quot;, change_id),</span>
+<span class="s1">)</span>
+<span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">&#39;format_field(key, value)&#39;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;key ++ &quot;: &quot; ++ value ++ &quot;\n&quot;&#39;</span>
+<span class="s1">&#39;json:x&#39;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;json(x) ++ &quot;\n&quot;&#39;</span>
+</code></pre></div>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
 <p>Get short commit IDs of the working-copy parents:</p>
-<p><code>sh
-jj log --no-graph -r @ -T 'parents.map(|c| c.commit_id().short()).join(",")'</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>log<span class="w"> </span>--no-graph<span class="w"> </span>-r<span class="w"> </span>@<span class="w"> </span>-T<span class="w"> </span><span class="s1">&#39;parents.map(|c| c.commit_id().short()).join(&quot;,&quot;)&#39;</span>
+</code></pre></div>
 <p>Show machine-readable list of full commit and change IDs:</p>
-<p><code>sh
-jj log --no-graph -T 'commit_id ++ " " ++ change_id ++ "\n"'</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>log<span class="w"> </span>--no-graph<span class="w"> </span>-T<span class="w"> </span><span class="s1">&#39;commit_id ++ &quot; &quot; ++ change_id ++ &quot;\n&quot;&#39;</span>
+</code></pre></div>
 <p>Print the description of the current commit, defaulting to <code>(no description set)</code>:</p>
-<p><code>sh
-jj log -r @ --no-graph -T 'coalesce(description, "(no description set)\n")'</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>log<span class="w"> </span>-r<span class="w"> </span>@<span class="w"> </span>--no-graph<span class="w"> </span>-T<span class="w"> </span><span class="s1">&#39;coalesce(description, &quot;(no description set)\n&quot;)&#39;</span>
+</code></pre></div>
 
 
 

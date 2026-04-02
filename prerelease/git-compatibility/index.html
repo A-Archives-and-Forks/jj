@@ -1146,6 +1146,24 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#branches" class="md-nav__link">
+    <span class="md-ellipsis">
+      Branches
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#format-mapping-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      Format mapping details
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1979,6 +1997,24 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#branches" class="md-nav__link">
+    <span class="md-ellipsis">
+      Branches
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#format-mapping-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      Format mapping details
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2172,27 +2208,26 @@ time.</p>
 workspace can be converted into a colocated workspace using the
 <code>jj git colocation</code> command.</p>
 <p>To check the current colocation status of your workspace:</p>
-<p><code>bash
-jj git colocation status</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>git<span class="w"> </span>colocation<span class="w"> </span>status
+</code></pre></div>
 <p>To convert to a colocated workspace:</p>
-<p><code>bash
-jj git colocation enable</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>git<span class="w"> </span>colocation<span class="w"> </span><span class="nb">enable</span>
+</code></pre></div>
 <p>To convert to a non-colocated workspace:</p>
-<p><code>bash
-jj git colocation disable</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>git<span class="w"> </span>colocation<span class="w"> </span>disable
+</code></pre></div>
 <p>The <code>jj colocation enable</code> command automates the following manual process:</p>
-<p>```bash</p>
-<h1 id="ignore-the-jj-directory-in-git">Ignore the .jj directory in Git<a class="headerlink" href="#ignore-the-jj-directory-in-git" title="Permanent link">&para;</a></h1>
-<p>echo '/*' &gt; .jj/.gitignore</p>
-<h1 id="move-the-git-repo">Move the Git repo<a class="headerlink" href="#move-the-git-repo" title="Permanent link">&para;</a></h1>
-<p>mv .jj/repo/store/git .git</p>
-<h1 id="tell-jj-where-to-find-it-do-not-use-on-windows-see-below">Tell jj where to find it (do not use on Windows! See below.)<a class="headerlink" href="#tell-jj-where-to-find-it-do-not-use-on-windows-see-below" title="Permanent link">&para;</a></h1>
-<p>echo -n '../../../.git' &gt; .jj/repo/store/git_target</p>
-<h1 id="make-the-git-repository-non-bare-and-set-head">Make the Git repository non-bare and set HEAD<a class="headerlink" href="#make-the-git-repository-non-bare-and-set-head" title="Permanent link">&para;</a></h1>
-<p>git config --unset core.bare</p>
-<h1 id="convince-jj-to-update-githead-to-point-to-the-working-copy-commits-parent">Convince jj to update .git/HEAD to point to the working-copy commit's parent<a class="headerlink" href="#convince-jj-to-update-githead-to-point-to-the-working-copy-commits-parent" title="Permanent link">&para;</a></h1>
-<p>jj new &amp;&amp; jj undo
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Ignore the .jj directory in Git</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;/*&#39;</span><span class="w"> </span>&gt;<span class="w"> </span>.jj/.gitignore
+<span class="c1"># Move the Git repo</span>
+mv<span class="w"> </span>.jj/repo/store/git<span class="w"> </span>.git
+<span class="c1"># Tell jj where to find it (do not use on Windows! See below.)</span>
+<span class="nb">echo</span><span class="w"> </span>-n<span class="w"> </span><span class="s1">&#39;../../../.git&#39;</span><span class="w"> </span>&gt;<span class="w"> </span>.jj/repo/store/git_target
+<span class="c1"># Make the Git repository non-bare and set HEAD</span>
+git<span class="w"> </span>config<span class="w"> </span>--unset<span class="w"> </span>core.bare
+<span class="c1"># Convince jj to update .git/HEAD to point to the working-copy commit&#39;s parent</span>
+jj<span class="w"> </span>new<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>jj<span class="w"> </span>undo
+</code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>On Windows, the <code>echo</code> command will append line endings and cause <code>jj</code>

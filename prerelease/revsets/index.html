@@ -2212,13 +2212,14 @@ ancestors of B", while <code>A.. | B..</code> means "commits that are not ancest
 <details class="examples">
 <summary>Examples</summary>
 <p>Given this history:
-<code>D
+<div class="highlight"><pre><span></span><code>D
 |\
 B C
 |/
 A
 |
-root()</code></p>
+root()
+</code></pre></div></p>
 <p><strong>Operator</strong> <code>x-</code></p>
 <ul>
 <li><code>D-</code> ⇒ <code>{C,B}</code></li>
@@ -2586,14 +2587,15 @@ visible_heads())</code>.</p>
 <details class="examples">
 <summary>Examples</summary>
 <p>Given this history:
-<code>E
+<div class="highlight"><pre><span></span><code>E
 | D
 |/|
 B C
 |/
 A
 |
-root()</code></p>
+root()
+</code></pre></div></p>
 <p><strong>function</strong> <code>reachable()</code></p>
 <p><code>reachable(srcs, domain)</code> finds all commits reachable from <code>srcs</code> by
 following parent or child edges, but limited to commits within <code>domain</code>.</p>
@@ -2687,12 +2689,12 @@ other aliases.</p>
 <p>Alias functions can be overloaded by the number of parameters. However, builtin
 function will be shadowed by name, and can't co-exist with aliases.</p>
 <p>For example:</p>
-<p><code>toml
-[revset-aliases]
-'HEAD' = '@-'
-'user()' = 'user("me@example.org")'
-'user(x)' = 'author(x) | committer(x)'
-'grep:x' = 'description(regex:x)'</code></p>
+<div class="highlight"><pre><span></span><code><span class="k">[revset-aliases]</span>
+<span class="s1">&#39;HEAD&#39;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;@-&#39;</span>
+<span class="s1">&#39;user()&#39;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;user(&quot;me@example.org&quot;)&#39;</span>
+<span class="s1">&#39;user(x)&#39;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;author(x) | committer(x)&#39;</span>
+<span class="s1">&#39;grep:x&#39;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;description(regex:x)&#39;</span>
+</code></pre></div>
 <h3 id="built-in-aliases">Built-in Aliases<a class="headerlink" href="#built-in-aliases" title="Permanent link">&para;</a></h3>
 <p>The following aliases are built-in and used for certain operations. These functions
 are defined as aliases in order to allow you to overwrite them as needed.
@@ -2710,9 +2712,9 @@ exists, the newest one is chosen. If none of the bookmarks exist, the revset
 evaluates to <code>root()</code>.</p>
 <p>You can <a href="../config/">override</a> this as appropriate. If you do, make sure it
 always resolves to exactly one commit. For example:</p>
-<p><code>toml
-[revset-aliases]
-'trunk()' = 'your-bookmark@your-remote'</code></p>
+<div class="highlight"><pre><span></span><code><span class="k">[revset-aliases]</span>
+<span class="s1">&#39;trunk()&#39;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;your-bookmark@your-remote&#39;</span>
+</code></pre></div>
 </li>
 <li>
 <p><code>builtin_immutable_heads()</code>: Resolves to <code>trunk() | tags() |
@@ -2754,31 +2756,31 @@ always resolves to exactly one commit. For example:</p>
 </ul>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
 <p>Show the parent(s) of the working-copy commit (like <code>git log -1 HEAD</code>):</p>
-<p><code>shell
-jj log -r @-</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>log<span class="w"> </span>-r<span class="w"> </span>@-
+</code></pre></div>
 <p>Show all ancestors of the working copy (like plain <code>git log</code>)</p>
-<p><code>shell
-jj log -r ::@</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>log<span class="w"> </span>-r<span class="w"> </span>::@
+</code></pre></div>
 <p>Show commits not on any remote bookmark:</p>
-<p><code>shell
-jj log -r 'remote_bookmarks()..'</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>log<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;remote_bookmarks()..&#39;</span>
+</code></pre></div>
 <p>Show commits not on <code>origin</code> (if you have other remotes like <code>fork</code>):</p>
-<p><code>shell
-jj log -r 'remote_bookmarks(remote=origin)..'</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>log<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;remote_bookmarks(remote=origin)..&#39;</span>
+</code></pre></div>
 <p>Show the initial commits in the repo (the ones Git calls "root commits"):</p>
-<p><code>shell
-jj log -r 'root()+'</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>log<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;root()+&#39;</span>
+</code></pre></div>
 <p>Show some important commits (like <code>git log --simplify-by-decoration</code>):</p>
-<p><code>shell
-jj log -r 'tags() | bookmarks()'</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>log<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;tags() | bookmarks()&#39;</span>
+</code></pre></div>
 <p>Show local commits leading up to the working copy, as well as descendants of
 those commits:</p>
-<p><code>shell
-jj log -r '(remote_bookmarks()..@)::'</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>log<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;(remote_bookmarks()..@)::&#39;</span>
+</code></pre></div>
 <p>Show commits authored by "martinvonz" and containing the word "reset" in the
 description:</p>
-<p><code>shell
-jj log -r 'author(*martinvonz*) &amp; description(*reset*)'</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>log<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;author(*martinvonz*) &amp; description(*reset*)&#39;</span>
+</code></pre></div>
 
 
 

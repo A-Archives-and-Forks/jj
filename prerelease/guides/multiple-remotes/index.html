@@ -853,6 +853,24 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#maintaining-an-independent-repository-that-integrates-changes-from-upstream" class="md-nav__link">
+    <span class="md-ellipsis">
+      Maintaining an independent repository that integrates changes from upstream
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      Other workflows
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1895,6 +1913,24 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#maintaining-an-independent-repository-that-integrates-changes-from-upstream" class="md-nav__link">
+    <span class="md-ellipsis">
+      Maintaining an independent repository that integrates changes from upstream
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      Other workflows
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1949,16 +1985,18 @@ contributions, most likely so you can open pull requests.</p>
   updated.</li>
 <li>Set <code>main@upstream</code> as the <code>trunk()</code> revset alias so it is immutable.</li>
 </ul>
-<p>```shell</p>
-<h1 id="fetch-from-both-remotes-by-default">Fetch from both remotes by default<a class="headerlink" href="#fetch-from-both-remotes-by-default" title="Permanent link">&para;</a></h1>
-<p>$ jj config set --repo git.fetch '["upstream", "origin"]'</p>
-<h1 id="push-only-to-the-fork-by-default">Push only to the fork by default<a class="headerlink" href="#push-only-to-the-fork-by-default" title="Permanent link">&para;</a></h1>
-<p>$ jj config set --repo git.push origin</p>
-<h1 id="track-both-remote-bookmarks">Track both remote bookmarks<a class="headerlink" href="#track-both-remote-bookmarks" title="Permanent link">&para;</a></h1>
-<p>$ jj bookmark track main</p>
-<h1 id="the-upstream-repository-defines-the-trunk">The upstream repository defines the trunk<a class="headerlink" href="#the-upstream-repository-defines-the-trunk" title="Permanent link">&para;</a></h1>
-<p>$ jj config set --repo 'revset-aliases."trunk()"' main@upstream
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Fetch from both remotes by default</span>
+$<span class="w"> </span>jj<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--repo<span class="w"> </span>git.fetch<span class="w"> </span><span class="s1">&#39;[&quot;upstream&quot;, &quot;origin&quot;]&#39;</span>
+
+<span class="c1"># Push only to the fork by default</span>
+$<span class="w"> </span>jj<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--repo<span class="w"> </span>git.push<span class="w"> </span>origin
+
+<span class="c1"># Track both remote bookmarks</span>
+$<span class="w"> </span>jj<span class="w"> </span>bookmark<span class="w"> </span>track<span class="w"> </span>main
+
+<span class="c1"># The upstream repository defines the trunk</span>
+$<span class="w"> </span>jj<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--repo<span class="w"> </span><span class="s1">&#39;revset-aliases.&quot;trunk()&quot;&#39;</span><span class="w"> </span>main@upstream
+</code></pre></div>
 <h2 id="maintaining-an-independent-repository-that-integrates-changes-from-upstream">Maintaining an independent repository that integrates changes from upstream<a class="headerlink" href="#maintaining-an-independent-repository-that-integrates-changes-from-upstream" title="Permanent link">&para;</a></h2>
 <p>This is a repository that was originally cloned from upstream, but now contains
 changes in its <code>main</code> branch that are not upstream and might never be
@@ -1982,18 +2020,20 @@ contributed back.</p>
 <li><em>Do not</em> track <code>main@upstream</code>.</li>
 <li>Set <code>main@origin</code> as the <code>trunk()</code> revset alias so it is immutable.</li>
 </ul>
-<p>```shell</p>
-<h1 id="fetch-from-origin-or-both-remotes-by-default">Fetch from origin or both remotes by default<a class="headerlink" href="#fetch-from-origin-or-both-remotes-by-default" title="Permanent link">&para;</a></h1>
-<p>$ jj config set --repo git.fetch '["origin"]'</p>
-<h1 id="or-jj-config-set-repo-gitfetch-upstream-origin">or: jj config set --repo git.fetch '["upstream", "origin"]'<a class="headerlink" href="#or-jj-config-set-repo-gitfetch-upstream-origin" title="Permanent link">&para;</a></h1>
-<h1 id="push-only-to-origin-by-default">Push only to origin by default<a class="headerlink" href="#push-only-to-origin-by-default" title="Permanent link">&para;</a></h1>
-<p>$ jj config set --repo git.push origin</p>
-<h1 id="track-only-the-origin-bookmark">Track only the origin bookmark<a class="headerlink" href="#track-only-the-origin-bookmark" title="Permanent link">&para;</a></h1>
-<p>$ jj bookmark track main --remote=origin
-$ jj bookmark untrack main --remote=upstream</p>
-<h1 id="the-origin-repository-defines-the-trunk">The origin repository defines the trunk<a class="headerlink" href="#the-origin-repository-defines-the-trunk" title="Permanent link">&para;</a></h1>
-<p>$ jj config set --repo 'revset-aliases."trunk()"' main@origin
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Fetch from origin or both remotes by default</span>
+$<span class="w"> </span>jj<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--repo<span class="w"> </span>git.fetch<span class="w"> </span><span class="s1">&#39;[&quot;origin&quot;]&#39;</span>
+<span class="c1"># or: jj config set --repo git.fetch &#39;[&quot;upstream&quot;, &quot;origin&quot;]&#39;</span>
+
+<span class="c1"># Push only to origin by default</span>
+$<span class="w"> </span>jj<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--repo<span class="w"> </span>git.push<span class="w"> </span>origin
+
+<span class="c1"># Track only the origin bookmark</span>
+$<span class="w"> </span>jj<span class="w"> </span>bookmark<span class="w"> </span>track<span class="w"> </span>main<span class="w"> </span>--remote<span class="o">=</span>origin
+$<span class="w"> </span>jj<span class="w"> </span>bookmark<span class="w"> </span>untrack<span class="w"> </span>main<span class="w"> </span>--remote<span class="o">=</span>upstream
+
+<span class="c1"># The origin repository defines the trunk</span>
+$<span class="w"> </span>jj<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--repo<span class="w"> </span><span class="s1">&#39;revset-aliases.&quot;trunk()&quot;&#39;</span><span class="w"> </span>main@origin
+</code></pre></div>
 <h2 id="other-workflows">Other workflows<a class="headerlink" href="#other-workflows" title="Permanent link">&para;</a></h2>
 <p>Other workflows may be supported. Some general guidance for this:</p>
 <ul>

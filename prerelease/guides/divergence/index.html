@@ -840,6 +840,33 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#strategy-2-generate-a-new-change-id" class="md-nav__link">
+    <span class="md-ellipsis">
+      Strategy 2: Generate a new change ID
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strategy-3-squash-the-commits-together" class="md-nav__link">
+    <span class="md-ellipsis">
+      Strategy 3: Squash the commits together
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strategy-4-ignore-the-divergence" class="md-nav__link">
+    <span class="md-ellipsis">
+      Strategy 4: Ignore the divergence
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1920,6 +1947,33 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#strategy-2-generate-a-new-change-id" class="md-nav__link">
+    <span class="md-ellipsis">
+      Strategy 2: Generate a new change ID
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strategy-3-squash-the-commits-together" class="md-nav__link">
+    <span class="md-ellipsis">
+      Strategy 3: Squash the commits together
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strategy-4-ignore-the-divergence" class="md-nav__link">
+    <span class="md-ellipsis">
+      Strategy 4: Ignore the divergence
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1954,10 +2008,10 @@
 <p>A <a href="../../glossary/#divergent-change">divergent change</a> occurs when multiple <a href="../../glossary/#visible-commits">visible commits</a> have the same change
 ID. These changes are displayed with a <a href="../../glossary/#change-offset">change offset</a> after their change ID and
 a label of "divergent":</p>
-<p><code>shell
-$ jj log
-@  mzvwutvl/0 test.user@example.com 2001-02-03 08:05:12 29d07a2d (divergent)
-│  a divergent change</code></p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>jj<span class="w"> </span>log
+@<span class="w">  </span>mzvwutvl/0<span class="w"> </span>test.user@example.com<span class="w"> </span><span class="m">2001</span>-02-03<span class="w"> </span><span class="m">08</span>:05:12<span class="w"> </span>29d07a2d<span class="w"> </span><span class="o">(</span>divergent<span class="o">)</span>
+│<span class="w">  </span>a<span class="w"> </span>divergent<span class="w"> </span>change
+</code></pre></div>
 <p>Normally, when commits are rewritten, the original version (the "predecessor")
 becomes hidden and the new commit (the "successor") is visible. Thus, only one
 commit with a given change ID is visible at a time.</p>
@@ -2009,26 +2063,25 @@ log, since the change ID is ambiguous by itself.</p>
 <h3 id="strategy-1-abandon-one-of-the-commits">Strategy 1: Abandon one of the commits<a class="headerlink" href="#strategy-1-abandon-one-of-the-commits" title="Permanent link">&para;</a></h3>
 <p>If one of the divergent commits is clearly obsolete or incorrect, simply abandon
 it:</p>
-<p>```shell</p>
-<h1 id="abandon-the-unwanted-commit-using-its-commit-id-or-change-id-with-offset">Abandon the unwanted commit using its commit ID (or change ID with offset)<a class="headerlink" href="#abandon-the-unwanted-commit-using-its-commit-id-or-change-id-with-offset" title="Permanent link">&para;</a></h1>
-<p>jj abandon <unwanted-commit-id></p>
-<h1 id="you-can-abandon-several-at-once-with">You can abandon several at once with:<a class="headerlink" href="#you-can-abandon-several-at-once-with" title="Permanent link">&para;</a></h1>
-<h1 id="jj-abandon-abc-def-123">jj abandon abc def 123<a class="headerlink" href="#jj-abandon-abc-def-123" title="Permanent link">&para;</a></h1>
-<h1 id="jj-abandon-abc">jj abandon abc::<a class="headerlink" href="#jj-abandon-abc" title="Permanent link">&para;</a></h1>
-<p>```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Abandon the unwanted commit using its commit ID (or change ID with offset)</span>
+jj<span class="w"> </span>abandon<span class="w"> </span>&lt;unwanted-commit-id&gt;
+
+<span class="c1"># You can abandon several at once with:</span>
+<span class="c1"># jj abandon abc def 123</span>
+<span class="c1"># jj abandon abc::</span>
+</code></pre></div>
 <p>This is the simplest solution when you know which version to keep.</p>
 <h3 id="strategy-2-generate-a-new-change-id">Strategy 2: Generate a new change ID<a class="headerlink" href="#strategy-2-generate-a-new-change-id" title="Permanent link">&para;</a></h3>
 <p>If you want to keep both versions as separate changes with different change IDs,
 you can generate a new change ID for one of the commits:</p>
-<p><code>shell
-jj metaedit --update-change-id &lt;commit-id&gt;</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>metaedit<span class="w"> </span>--update-change-id<span class="w"> </span>&lt;commit-id&gt;
+</code></pre></div>
 <p>This preserves both versions of the content while resolving the divergence.</p>
 <h3 id="strategy-3-squash-the-commits-together">Strategy 3: Squash the commits together<a class="headerlink" href="#strategy-3-squash-the-commits-together" title="Permanent link">&para;</a></h3>
 <p>When you want to combine the content from both divergent commits:</p>
-<p>```shell</p>
-<h1 id="squash-one-commit-into-the-other">Squash one commit into the other<a class="headerlink" href="#squash-one-commit-into-the-other" title="Permanent link">&para;</a></h1>
-<p>jj squash --from <source-commit-id> --into <target-commit-id>
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Squash one commit into the other</span>
+jj<span class="w"> </span>squash<span class="w"> </span>--from<span class="w"> </span>&lt;source-commit-id&gt;<span class="w"> </span>--into<span class="w"> </span>&lt;target-commit-id&gt;
+</code></pre></div>
 <p>This combines the changes from both commits into a single commit. The source
 commit will be abandoned.</p>
 <h3 id="strategy-4-ignore-the-divergence">Strategy 4: Ignore the divergence<a class="headerlink" href="#strategy-4-ignore-the-divergence" title="Permanent link">&para;</a></h3>

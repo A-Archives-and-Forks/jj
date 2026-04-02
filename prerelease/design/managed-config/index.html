@@ -2438,9 +2438,8 @@ problem".</p>
 <h3 id="security">Security<a class="headerlink" href="#security" title="Permanent link">&para;</a></h3>
 <h4 id="trust-levels">Trust levels<a class="headerlink" href="#trust-levels" title="Permanent link">&para;</a></h4>
 <p>We will add the following fields to metadata:
-```
-enum TrustLevel {
-    // There's no "optional" in protos. It just returns the zero value.
+<div class="highlight"><pre><span></span><code>enum TrustLevel {
+    // There&#39;s no &quot;optional&quot; in protos. It just returns the zero value.
     UNSET = 0;
     // The user wishes to completely ignore the managed config file.
     IGNORED = 1;
@@ -2453,24 +2452,24 @@ enum TrustLevel {
     NOTIFY = 3;
     // In review mode, the user has to review every config individually.
     REVIEW = 4;
-}</p>
-<p>message Metadata {
-    // previous fields</p>
-<div class="codehilite"><pre><span></span><code>// The trust level associated with this repo.
-TrustLevel trust_level = 2;
+}
 
-// When trust_level is review, the following fields are used.
-set&lt;Hash&gt; approved_configs = 3;
-set&lt;Hash&gt; rejected_configs = 4;
-// This is a can of worms and thus out of scope of the MVP.
-// There&#39;s no one correct way to choose the last approved.
-// Sometimes, the user wants be the last appproved config in the workspace.
-// At other times, the user wants be the last appproved config in the repo.
-string last_approved_config = 5;
-</code></pre></div>
+message Metadata {
+    // previous fields
 
-<p>}
-```</p>
+    // The trust level associated with this repo.
+    TrustLevel trust_level = 2;
+
+    // When trust_level is review, the following fields are used.
+    set&lt;Hash&gt; approved_configs = 3;
+    set&lt;Hash&gt; rejected_configs = 4;
+    // This is a can of worms and thus out of scope of the MVP.
+    // There&#39;s no one correct way to choose the last approved.
+    // Sometimes, the user wants be the last appproved config in the workspace.
+    // At other times, the user wants be the last appproved config in the repo.
+    string last_approved_config = 5;
+}
+</code></pre></div></p>
 <p>Note that although the <code>Metadata</code> struct is stored for both the repo and the
 workspace, this will only be used for the repository, not the workspace.</p>
 <p>This is because trust is associated with repositories, not workspaces. If I
@@ -2619,9 +2618,10 @@ added in later.</p>
 --ignore/notify/trust</code>.</p>
 <h3 id="where-to-read-from">Where to read from<a class="headerlink" href="#where-to-read-from" title="Permanent link">&para;</a></h3>
 <p>This is the trickiest part of the proposal. Consider the following workflow:</p>
-<p><code>jj new main@origin
+<div class="highlight"><pre><span></span><code>jj new main@origin
 jj ...
-jj new stable-branch@origin</code></p>
+jj new stable-branch@origin
+</code></pre></div>
 <p>There are some edge cases we need to consider:</p>
 <ul>
 <li><code>stable-branch</code> may have existed before the config was added</li>
@@ -2662,29 +2662,35 @@ from <code>trunk()</code>.</p>
 <h4 id="problematic-examples">Problematic examples<a class="headerlink" href="#problematic-examples" title="Permanent link">&para;</a></h4>
 <p>This is problematic with <code>trunk()</code> because if you add the <code>--reorder-hooks</code> and
 then checkout <code>stable-branch</code> it will incorrectly attempt to reorder imports</p>
-<p><code>[fix.tools.rustfmt]
-command = ["rustfmt", "--reorder-imports"]</code></p>
+<div class="highlight"><pre><span></span><code>[fix.tools.rustfmt]
+command = [&quot;rustfmt&quot;, &quot;--reorder-imports&quot;]
+</code></pre></div>
 <h5 id="solution-1-formatter-config">Solution 1: formatter config<a class="headerlink" href="#solution-1-formatter-config" title="Permanent link">&para;</a></h5>
 <p>In practice, it is highly unlikely that a formatter config would be written that
 way. Far more likely, you would see an entry in <code>config.toml</code> like:</p>
-<p><code>[fix.tools.rustfmt]
-command = ["rustfmt"]</code></p>
+<div class="highlight"><pre><span></span><code>[fix.tools.rustfmt]
+command = [&quot;rustfmt&quot;]
+</code></pre></div>
 <p><code>.rustfmt.toml</code>:
-<code>reorder_imports = true</code></p>
+<div class="highlight"><pre><span></span><code>reorder_imports = true
+</code></pre></div></p>
 <p>This simply works out of the box, since the formatter is reading the config from
 <code>@</code>'s <code>.rustfmt.toml</code></p>
 <h5 id="solution-2-more-general-but-convoluted-wrapper-script">Solution 2 (more general but convoluted): Wrapper script<a class="headerlink" href="#solution-2-more-general-but-convoluted-wrapper-script" title="Permanent link">&para;</a></h5>
 <p>As long as the formatter is in-repo, we can just write a wrapper script which
 does this for us.</p>
-<p><code>[fix.tools.rustfmt]
-command = ["rustfmt.py"]</code></p>
+<div class="highlight"><pre><span></span><code>[fix.tools.rustfmt]
+command = [&quot;rustfmt.py&quot;]
+</code></pre></div>
 <p><code>rustfmt.py</code>:
-<code>os.execv(["rustfmt", "--reorder-imports"])</code></p>
+<div class="highlight"><pre><span></span><code>os.execv([&quot;rustfmt&quot;, &quot;--reorder-imports&quot;])
+</code></pre></div></p>
 <h4 id="solution-3-for-scripts-that-need-to-run-at-trunk">Solution 3 (for scripts that need to run at trunk)<a class="headerlink" href="#solution-3-for-scripts-that-need-to-run-at-trunk" title="Permanent link">&para;</a></h4>
 <p>If you write a script for which the API keeps changing, eg. you add / remove
 flags to it, you can do something like this:</p>
-<p><code>[aliases]
-upload = ["util", "exec", "--", "bash", "-c", "python3", "-c", "$(jj file show -r 'trunk()' upload.py)"]</code></p>
+<div class="highlight"><pre><span></span><code>[aliases]
+upload = [&quot;util&quot;, &quot;exec&quot;, &quot;--&quot;, &quot;bash&quot;, &quot;-c&quot;, &quot;python3&quot;, &quot;-c&quot;, &quot;$(jj file show -r &#39;trunk()&#39; upload.py)&quot;]
+</code></pre></div>
 <h4 id="decision-trunk-vs">Decision: Trunk vs @<a class="headerlink" href="#decision-trunk-vs" title="Permanent link">&para;</a></h4>
 <p><code>@</code> and <code>trunk()</code> are the only two reasonable candidates as places to read from,
 IMO. I personally believe that if only one option is available, <code>trunk()</code> would
@@ -2701,12 +2707,13 @@ config option.</p>
 <p>Alternatively, a more general approach could be to create some kind of include
 directive in <code>config.toml</code> files, like so (this has already been discussed and
 rejected before, so it may not be viable).
-<code>includes = [
+<div class="highlight"><pre><span></span><code>includes = [
     {
-        path = "other_config.toml",
-        revision = "trunk()",
+        path = &quot;other_config.toml&quot;,
+        revision = &quot;trunk()&quot;,
     },
-]</code></p>
+]
+</code></pre></div></p>
 <h4 id="read-from-filesystem-or-from-repo-objects">Read from filesystem or from repo objects?<a class="headerlink" href="#read-from-filesystem-or-from-repo-objects" title="Permanent link">&para;</a></h4>
 <p>The tradeoffs are:</p>
 <ul>

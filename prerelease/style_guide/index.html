@@ -2125,19 +2125,19 @@ correctly (we have tests in <code>jj-lib</code> for that), but they should check
 <li>
 <p>Since doc comments are interpreted as Markdown, there must be a blank
   comment line between this first line and the rest of the comment:</p>
-<p>```rust
-// CORRECT:</p>
-<p>/// Foos the given <code>bar</code> and <code>baz</code>.
-///
-/// More description about this very important function.
-fn foo(bar: &amp;Bar, baz: &amp;Baz) { ... }
-```</p>
-<p>```rust
-// INCORRECT: This entire comment will be interpreted as the "first line".</p>
-<p>/// Foos the given <code>bar</code> and <code>baz</code>.
-/// More description about this very important function.
-fn foo(bar: &amp;Bar, baz: &amp;Baz) { ... }
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// CORRECT:</span>
+
+<span class="sd">/// Foos the given `bar` and `baz`.</span>
+<span class="sd">///</span>
+<span class="sd">/// More description about this very important function.</span>
+<span class="k">fn</span><span class="w"> </span><span class="nf">foo</span><span class="p">(</span><span class="n">bar</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">Bar</span><span class="p">,</span><span class="w"> </span><span class="n">baz</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">Baz</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1">// INCORRECT: This entire comment will be interpreted as the &quot;first line&quot;.</span>
+
+<span class="sd">/// Foos the given `bar` and `baz`.</span>
+<span class="sd">/// More description about this very important function.</span>
+<span class="k">fn</span><span class="w"> </span><span class="nf">foo</span><span class="p">(</span><span class="n">bar</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">Bar</span><span class="p">,</span><span class="w"> </span><span class="n">baz</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">Baz</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">..</span><span class="p">.</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
 </li>
 <li>
 <p>For functions, this summary line should be written in third-person singular
@@ -2178,20 +2178,20 @@ fn foo(bar: &amp;Bar, baz: &amp;Baz) { ... }
   probably be fine.</p>
 </li>
 </ul>
-<p>```
-CORRECT:
+<div class="highlight"><pre><span></span><code>CORRECT:
 $ jj new -h
-Create a new, empty change and (by default) edit it in the working copy</p>
-<p>$ jj bookmark create -h
+Create a new, empty change and (by default) edit it in the working copy
+
+$ jj bookmark create -h
 Create a new bookmark
-```</p>
-<p><code>``
-INCORRECT:
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>INCORRECT:
 $ jj new -h
-Creates a new, empty change. The default behavior is to immediately edit this new change, but pass</code>--no-edit` to avoid this.</p>
-<p>$ jj bookmark create -h
-Creates new bookmarks with the given names and assigns them to the given target revision, which defaults to <code>@</code>.
-```</p>
+Creates a new, empty change. The default behavior is to immediately edit this new change, but pass `--no-edit` to avoid this.
+
+$ jj bookmark create -h
+Creates new bookmarks with the given names and assigns them to the given target revision, which defaults to `@`.
+</code></pre></div>
 </li>
 <li>
 <p>The rest of the command documentation should be written in complete sentences.</p>
@@ -2210,7 +2210,8 @@ Creates new bookmarks with the given names and assigns them to the given target 
   shown by <code>clap</code>, since it doesn't know about them. Mention these at the end of
   the first line for the command in question in the format
   <code>[default alias: &lt;alias&gt;]</code>. For example, the first line of <code>jj describe</code> is:</p>
-<p><code>Update the change description or other metadata [default alias: desc]</code></p>
+<div class="highlight"><pre><span></span><code>Update the change description or other metadata [default alias: desc]
+</code></pre></div>
 </li>
 <li>
 <p>Very loose guidance, but if you are adding a new command, prefer single
@@ -2253,24 +2254,26 @@ Creates new bookmarks with the given names and assigns them to the given target 
 <ul>
 <li>Note that the name of the struct field can be different from the name of
   the argument according to <code>clap</code>:
-  <code>rust
-  #[arg(long = "flag")]
-  my_values: MyType,</code>
+  <div class="highlight"><pre><span></span><code><span class="cp">#[arg(long = </span><span class="s">&quot;flag&quot;</span><span class="cp">)]</span>
+<span class="n">my_values</span><span class="p">:</span><span class="w"> </span><span class="nc">MyType</span><span class="p">,</span>
+</code></pre></div>
   This section is mostly discussing the user-facing argument / option names;
   how you name variables is up to you.</li>
 </ul>
 </li>
 </ul>
-<p><code>CORRECT / PREFERRED:
---ignore-working-copy  Don't snapshot the working copy, and don't update it
+<div class="highlight"><pre><span></span><code>CORRECT / PREFERRED:
+--ignore-working-copy  Don&#39;t snapshot the working copy, and don&#39;t update it
 --quiet                Silence non-primary command output
 --no-pager             Disable the pager
---config &lt;NAME=VALUE&gt;  Additional configuration options (can be repeated)</code></p>
-<p><code>INCORRECT / LESS PREFERRED:
+--config &lt;NAME=VALUE&gt;  Additional configuration options (can be repeated)
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>INCORRECT / LESS PREFERRED:
 --ignore-working-copy   No snapshotting (so working copy is ignored).
 --quiet                 Provide this option to skip non-primary command output.
 --no-pager              Disables the pager.
---configs &lt;NAME=VALUE&gt;  Override some configuration options.</code></p>
+--configs &lt;NAME=VALUE&gt;  Override some configuration options.
+</code></pre></div>
 </li>
 <li>
 <p>Short options and visible aliases are automatically shown by <code>clap</code>, so no
@@ -2301,19 +2304,22 @@ methods.)</p>
 <ul>
 <li>
 <p>Function signatures are written similar to Rust:</p>
-<p><code>function_name(arg1: Type1, arg2: Type2) -&gt; ReturnType</code></p>
+<div class="highlight"><pre><span></span><code>function_name(arg1: Type1, arg2: Type2) -&gt; ReturnType
+</code></pre></div>
 <p>(Note that types are only applicable to the templating language and can be
 omitted from the fileset and revset language documentation.)</p>
 </li>
 <li>
 <p>For optional parameters, put square brackets around the <code>arg: Type</code> part;
   importantly, do not put the brackets around any surrounding commas.</p>
-<p><code>CORRECT:
+<div class="highlight"><pre><span></span><code>CORRECT:
 parents(x, [depth])
-if(condition: Boolean, then: Template, [else: Template]) -&gt; Template</code></p>
-<p><code>INCORRECT:
+if(condition: Boolean, then: Template, [else: Template]) -&gt; Template
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>INCORRECT:
 parents(x[, depth])
-if(condition: Boolean, then: Template[, else]) -&gt; Template</code></p>
+if(condition: Boolean, then: Template[, else]) -&gt; Template
+</code></pre></div>
 </li>
 <li>
 <p>For named parameters (rare), put the parameter name in the format <code>[name=]</code>
@@ -2324,20 +2330,24 @@ if(condition: Boolean, then: Template[, else]) -&gt; Template</code></p>
 intended as a way for users to skip previous optional parameters and provide a
 later one instead. However, this may change in the future, especially if named
 parameters make their way to the templating language.)</p>
-<p><code>CORRECT:
-remote_bookmarks([name_pattern], [[remote=]remote_pattern])</code></p>
-<p><code>INCORRECT:
+<div class="highlight"><pre><span></span><code>CORRECT:
+remote_bookmarks([name_pattern], [[remote=]remote_pattern])
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>INCORRECT:
 remote_bookmarks([name_pattern], [remote] = [remote_pattern])
-remote_bookmarks([name_pattern], [remote=remote_pattern])</code></p>
+remote_bookmarks([name_pattern], [remote=remote_pattern])
+</code></pre></div>
 </li>
 <li>
 <p>For variadic parameters, add an ellipsis (<code>...</code>) after the <code>arg: Type</code> part.</p>
-<p><code>CORRECT:
+<div class="highlight"><pre><span></span><code>CORRECT:
 coalesce(revsets...)
-concat(content: Template...) -&gt; Template</code></p>
-<p><code>INCORRECT:
+concat(content: Template...) -&gt; Template
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>INCORRECT:
 coalesce(...revsets)
-concat(*content: Template) -&gt; Template</code></p>
+concat(*content: Template) -&gt; Template
+</code></pre></div>
 </li>
 </ul>
 <h4 id="descriptions">Descriptions<a class="headerlink" href="#descriptions" title="Permanent link">&para;</a></h4>
@@ -2362,22 +2372,24 @@ concat(*content: Template) -&gt; Template</code></p>
   sentence in third-person singular present indicative form.</p>
 </li>
 </ul>
-<p>```
-CORRECT:
-all(): Matches all files.</p>
-<p>root(): The virtual commit that is the oldest ancestor of all other commits.
+<div class="highlight"><pre><span></span><code>CORRECT:
+all(): Matches all files.
+
+root(): The virtual commit that is the oldest ancestor of all other commits.
 none(): No commits.
-none(): Nothing.</p>
-<p>json(value: Serialize) -&gt; String: Serializes <code>value</code> in JSON format.
-```</p>
-<p>```
-INCORRECT:
-all(): All files.</p>
-<p>root(): Returns the virtual commit that is the oldest ancestor of all other commits.
-none(): Returns nothing.</p>
-<p>json(value: Serialize) -&gt; String: Serialize <code>value</code> in JSON format.
-json(value: Serialize) -&gt; String: The <code>value</code> in JSON format.
-```</p>
+none(): Nothing.
+
+json(value: Serialize) -&gt; String: Serializes `value` in JSON format.
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>INCORRECT:
+all(): All files.
+
+root(): Returns the virtual commit that is the oldest ancestor of all other commits.
+none(): Returns nothing.
+
+json(value: Serialize) -&gt; String: Serialize `value` in JSON format.
+json(value: Serialize) -&gt; String: The `value` in JSON format.
+</code></pre></div>
 </li>
 <li>
 <p>All following sentences should be written as complete sentences.</p>

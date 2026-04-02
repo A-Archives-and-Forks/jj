@@ -2088,20 +2088,20 @@ other aliases.</p>
 <p>Alias functions can be overloaded by the number of parameters. However, builtin
 function will be shadowed by name, and can't co-exist with aliases.</p>
 <p>For example:</p>
-<p><code>toml
-[fileset-aliases]
-'LOCK' = '**/Cargo.lock | **/package-lock.json | **/uv.lock'
-'not:x' = '~x'</code></p>
+<div class="highlight"><pre><span></span><code><span class="k">[fileset-aliases]</span>
+<span class="s1">&#39;LOCK&#39;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;**/Cargo.lock | **/package-lock.json | **/uv.lock&#39;</span>
+<span class="s1">&#39;not:x&#39;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;~x&#39;</span>
+</code></pre></div>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
 <p>Show diff excluding <code>Cargo.lock</code>.</p>
-<p><code>shell
-jj diff '~Cargo.lock'</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>diff<span class="w"> </span><span class="s1">&#39;~Cargo.lock&#39;</span>
+</code></pre></div>
 <p>List files in <code>src</code> excluding Rust sources.</p>
-<p><code>shell
-jj file list 'src ~ glob:"**/*.rs"'</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>file<span class="w"> </span>list<span class="w"> </span><span class="s1">&#39;src ~ glob:&quot;**/*.rs&quot;&#39;</span>
+</code></pre></div>
 <p>Split a revision in two, putting <code>foo</code> into the second commit.</p>
-<p><code>shell
-jj split '~foo'</code></p>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>split<span class="w"> </span><span class="s1">&#39;~foo&#39;</span>
+</code></pre></div>
 
 
 
