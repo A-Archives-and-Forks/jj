@@ -1052,7 +1052,7 @@ it adds a separator between all arguments, even if empty.</p>
 the absolute path as a string.</p>
 </li>
 <li>
-<p>Added <code dir="auto">format_path(path)</code> template that controls how file paths are printed
+<p>Added <code dir="auto">format_path(path)</code> template alias that controls how file paths are printed
 with <code dir="auto">jj file list</code>.</p>
 </li>
 <li>
@@ -1263,7 +1263,7 @@ be conditionally applied based on the hostname set in <code dir="auto">operation
 <li>
 <p><code dir="auto">jj bisect run</code> accepts the command and arguments to pass to the command
 directly as positional arguments, such as
-<code dir="auto">jj bisect --range=..main -- cargo check --all-targets</code>.</p>
+<code dir="auto">jj bisect run --range=..main -- cargo check --all-targets</code>.</p>
 </li>
 <li>
 <p>Divergent changes are no longer marked red in immutable revisions. Since the
