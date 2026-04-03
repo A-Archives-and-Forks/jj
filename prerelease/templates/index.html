@@ -2798,24 +2798,24 @@ y) * z</code>.</p>
 </li>
 <li>
 <ul>
-<li><code>x * y</code>, <code>x / y</code>, <code>x % y</code>: Multiplication/division/remainder. Operands must
+<li><code>x * y</code>, <code>x / y</code>, <code>x % y</code>: Multiplication / division / remainder. Operands must
      be <code>Integer</code>s.</li>
 </ul>
 </li>
 <li>
 <ul>
-<li><code>x + y</code>, <code>x - y</code>: Addition/subtraction. Operands must be <code>Integer</code>s.</li>
+<li><code>x + y</code>, <code>x - y</code>: Addition / subtraction. Operands must be <code>Integer</code>s.</li>
 </ul>
 </li>
 <li>
 <ul>
-<li><code>x &gt;= y</code>, <code>x &gt; y</code>, <code>x &lt;= y</code>, <code>x &lt; y</code>: Greater than or equal/greater than/
-     lesser than or equal/lesser than. Operands must be <code>Integer</code>s.</li>
+<li><code>x &gt;= y</code>, <code>x &gt; y</code>, <code>x &lt;= y</code>, <code>x &lt; y</code>: Greater than or equal / greater than /
+     lesser than or equal / lesser than. Operands must be <code>Integer</code>s.</li>
 </ul>
 </li>
 <li>
 <ul>
-<li><code>x == y</code>, <code>x != y</code>: Equal/not equal. Operands must be either <code>Boolean</code>,
+<li><code>x == y</code>, <code>x != y</code>: Equal / not equal. Operands must be either <code>Boolean</code>,
      <code>Integer</code>, or <code>String</code>.</li>
 </ul>
 </li>
@@ -2879,7 +2879,7 @@ y) * z</code>.</p>
   effectively removes color labels.</li>
 <li><code>json(value: Serialize) -&gt; String</code>: Serialize <code>value</code> in JSON format.</li>
 <li><code>if(condition: Boolean, then: Any, [else: Any]) -&gt; Any</code>:
-  Conditionally evaluates to <code>then</code>/<code>else</code> content.</li>
+  Conditionally evaluates to <code>then</code> / <code>else</code> content.</li>
 <li><code>coalesce(content: Template...) -&gt; Template</code>: Returns the first <strong>non-empty</strong>
   content.</li>
 <li><code>concat(content: Template...) -&gt; Template</code>:
@@ -3072,9 +3072,9 @@ checking for signature presence through boolean coercion is fast:
 <li><code>.bytes_delta() -&gt; Integer</code>: The difference in size of the file, in bytes.</li>
 <li><code>.lines_added() -&gt; Integer</code>: Number of lines added.</li>
 <li><code>.lines_removed() -&gt; Integer</code>: Number of lines deleted.</li>
-<li><code>.path() -&gt; RepoPath</code>: Path to the entry. If the entry is a copy/rename, this
+<li><code>.path() -&gt; RepoPath</code>: Path to the entry. If the entry is a copy / rename, this
   points to the target (or right) entry.</li>
-<li><code>.display_diff_path() -&gt; String</code>: Format path for display, taking into account copy/rename information.</li>
+<li><code>.display_diff_path() -&gt; String</code>: Format path for display, taking into account copy / rename information.</li>
 <li><code>.status() -&gt; String</code>: One of <code>"modified"</code>, <code>"added"</code>, <code>"removed"</code>, <code>"copied"</code>, or <code>"renamed"</code>.</li>
 <li><code>.status_char() -&gt; String</code>: One of <code>"M"</code> (modified), <code>"A"</code> (added), <code>"D"</code> (removed),
   <code>"C"</code> (copied), or <code>"R"</code> (renamed).</li>
@@ -3256,7 +3256,7 @@ that many occurrences are replaced.</p>
 <li><code>.trim_start() -&gt; String</code>: Removes leading whitespace</li>
 <li><code>.trim_end() -&gt; String</code>: Removes trailing whitespace</li>
 <li><code>.substr(start: Integer, [end: Integer]) -&gt; String</code>: Extract substring. The
-  <code>start</code>/<code>end</code> indices should be specified in units of UTF-8 bytes. Indices are
+  <code>start</code> / <code>end</code> indices should be specified in units of UTF-8 bytes. Indices are
   0-based and <code>end</code> is exclusive. Negative values count from the end of the
   string, with <code>-1</code> being the last byte. If the <code>start</code> index is in the middle
   of a UTF-8 codepoint, the codepoint is fully part of the result. If the <code>end</code>
@@ -3354,9 +3354,9 @@ only occur directly in the call site they are used in.</p>
 <p><em>Conversion: <code>Boolean</code>: no, <code>Serialize</code>: no, <code>Template</code>: no</em></p>
 <p>This type cannot be printed. The following methods are defined.</p>
 <ul>
-<li><code>.path() -&gt; RepoPath</code>: Path to the entry. If the entry is a copy/rename, this
+<li><code>.path() -&gt; RepoPath</code>: Path to the entry. If the entry is a copy / rename, this
   points to the target (or right) entry.</li>
-<li><code>.display_diff_path() -&gt; String</code>: Format path for display, taking into account copy/rename information.</li>
+<li><code>.display_diff_path() -&gt; String</code>: Format path for display, taking into account copy / rename information.</li>
 <li><code>.status() -&gt; String</code>: One of <code>"modified"</code>, <code>"added"</code>, <code>"removed"</code>,
   <code>"copied"</code>, or <code>"renamed"</code>.</li>
 <li><code>.status_char() -&gt; String</code>: Single-character status indicator: <code>"M"</code> for modified,
@@ -3432,13 +3432,13 @@ functions will be shadowed by name, and can't co-exist with aliases.</p>
 </code></pre></div>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
 <p>Get short commit IDs of the working-copy parents:</p>
-<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>log<span class="w"> </span>--no-graph<span class="w"> </span>-r<span class="w"> </span>@<span class="w"> </span>-T<span class="w"> </span><span class="s1">&#39;parents.map(|c| c.commit_id().short()).join(&quot;,&quot;)&#39;</span>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>log<span class="w"> </span>-G<span class="w"> </span>-r<span class="w"> </span>@<span class="w"> </span>-T<span class="w"> </span><span class="s1">&#39;parents.map(|c| c.commit_id().short()).join(&quot;,&quot;)&#39;</span>
 </code></pre></div>
 <p>Show machine-readable list of full commit and change IDs:</p>
-<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>log<span class="w"> </span>--no-graph<span class="w"> </span>-T<span class="w"> </span><span class="s1">&#39;commit_id ++ &quot; &quot; ++ change_id ++ &quot;\n&quot;&#39;</span>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>log<span class="w"> </span>-G<span class="w"> </span>-T<span class="w"> </span><span class="s1">&#39;commit_id ++ &quot; &quot; ++ change_id ++ &quot;\n&quot;&#39;</span>
 </code></pre></div>
 <p>Print the description of the current commit, defaulting to <code>(no description set)</code>:</p>
-<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>log<span class="w"> </span>-r<span class="w"> </span>@<span class="w"> </span>--no-graph<span class="w"> </span>-T<span class="w"> </span><span class="s1">&#39;coalesce(description, &quot;(no description set)\n&quot;)&#39;</span>
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>log<span class="w"> </span>-G<span class="w"> </span>-r<span class="w"> </span>@<span class="w"> </span>-T<span class="w"> </span><span class="s1">&#39;coalesce(description, &quot;(no description set)\n&quot;)&#39;</span>
 </code></pre></div>
 
 

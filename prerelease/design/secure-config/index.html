@@ -2503,10 +2503,12 @@ of the transitive closure of files that can be accessed via jj configs to solve.
 </ul>
 <h3 id="non-goals-optional">Non-goals (Optional)<a class="headerlink" href="#non-goals-optional" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Use strategies such as sandboxing to mitigate damage
-    *   We could do this for formatters, for example, but then repo hooks would
-        have the same problem
-    *   These options are not mutually exclusive</li>
+<li>Use strategies such as sandboxing to mitigate damage<ul>
+<li>We could do this for formatters, for example, but then repo hooks would
+    have the same problem</li>
+<li>These options are not mutually exclusive</li>
+</ul>
+</li>
 </ul>
 <h2 id="detailed-design">Detailed Design<a class="headerlink" href="#detailed-design" title="Permanent link">&para;</a></h2>
 <p>Note that this design uses the word "repo" for everything, but we will use
@@ -2593,11 +2595,13 @@ config ID has not yet been generated, we will silently perform the following
     config file</li>
 <li>Atomically generate a <code>config-id</code> file containing <code>abc123</code></li>
 <li>Remove the original config file</li>
-<li>For the user's convenience, and for older version of jj, we:
-    *   Try to symlink the old config to the new config
-    *   If this fails (symlinks don't play nice on windows), we replace it with
-        the same file content, with an extra comment at the top telling the user
-        not to edit the file, and set it to readonly.</li>
+<li>For the user's convenience, and for older version of jj, we:<ul>
+<li>Try to symlink the old config to the new config</li>
+<li>If this fails (symlinks don't play nice on windows), we replace it with
+    the same file content, with an extra comment at the top telling the user
+    not to edit the file, and set it to readonly.</li>
+</ul>
+</li>
 </ol>
 <p>After the migration period is over, we will:</p>
 <ul>
@@ -2691,11 +2695,13 @@ is the replay attack I mentioned above.</p>
 <ul>
 <li>Copying the repo is essentially a symlink to an old config until you update
     it</li>
-<li>Multiple users on the same system would each have different per-repo configs
-    *   This can be solved by simply symlinking <code>$HOME/.config/jj</code> to
-        <code>%APPDATA%/jj</code> (or vice versa) to solve this issue. You were probably
-        doing this anyway with specifically the user config file instead of the
-        directory.</li>
+<li>Multiple users on the same system would each have different per-repo configs<ul>
+<li>This can be solved by simply symlinking <code>$HOME/.config/jj</code> to
+    <code>%APPDATA%/jj</code> (or vice versa) to solve this issue. You were probably
+    doing this anyway with specifically the user config file instead of the
+    directory.</li>
+</ul>
+</li>
 <li>The repo config will no longer be available across machines if the user is
     using something like a distributed file system. This is probably OK, since
     if the user has a complex setup like this, they will also have issues with

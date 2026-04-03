@@ -2403,7 +2403,7 @@ these things include, but are not limited to:</p>
 <li>Pre-upload checks (eg. <a href="https://source.chromium.org/chromium/chromium/src/+/main:tools/jj/upload.py;drc=96f39fbbb720ca391d43cbb199a85af7d3309dd3">Chromium Pre-upload Checks</a>)</li>
 <li>Syncing scripts (eg. <a href="https://source.chromium.org/chromium/chromium/src/+/main:tools/jj/sync.py;drc=6ff08dcdd1fdeb1654a4d3da81d8adaeae4bbbf7">Chromium Syncing Scripts</a>)</li>
 <li>Custom aliases / revsets documented by some kind of “getting started with
-    <project>” document</li>
+    &lt;project&gt;” document</li>
 </ul>
 <p>It should be fairly obvious that there is a strong benefit to doing so. However,
 controlling a user’s config is sufficient to get root access to their machine,
@@ -2421,9 +2421,11 @@ drawbacks:</p>
 <h2 id="objective">Objective<a class="headerlink" href="#objective" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Create a new layer of configuration between user configuration and repo
-    configuration.
-    *   This configuration will be stored in version control and henceforth be
-        referred to as “managed” configuration.</li>
+    configuration.<ul>
+<li>This configuration will be stored in version control and henceforth be
+    referred to as “managed” configuration.</li>
+</ul>
+</li>
 <li>Implement it in a secure manner so that an attacker cannot take control over
     the managed config.</li>
 </ul>
@@ -2519,14 +2521,14 @@ semantics. If a config is not approved / rejected, we have 3 options:</p>
 <li>Use no config. This can potentially have quite bad effects on the repo.</li>
 <li>Use best-effort to use an approved config (probably most recently approved).</li>
 <li>Force the user to make a selection before running a command<ul>
-<li>This is impossible in general due to <code>ui.can_prompt()</code> returning false<ul>
+<li>This is impossible in general due to <code>ui.can_prompt()</code> returning <code>false</code><ul>
 <li>We would need to fall back to another option if we can't prompt.</li>
 </ul>
 </li>
 <li>But <code>ui.can_prompt()</code> does not mean that we <em>should</em> prompt<ul>
-<li>Eg. A script that runs jj to do a bisection probably doesn't want
+<li>E.g., a script that runs jj to do a bisection probably doesn't want
   you to prompt every time the config changes.</li>
-<li>This probably isn't too bad if it only happens once (eg. setting trust
+<li>This probably isn't too bad if it only happens once (e.g., setting trust
   level), but if it happens many times, it could be very annoying.</li>
 </ul>
 </li>
@@ -2535,41 +2537,47 @@ semantics. If a config is not approved / rejected, we have 3 options:</p>
 </ul>
 <p>Consider the following examples</p>
 <h6 id="user-is-working-on-config-file">User is working on config file.<a class="headerlink" href="#user-is-working-on-config-file" title="Permanent link">&para;</a></h6>
-<p>1) User runs <code>vim .config/jj/config.toml</code>
-2) User tries to test out the config, but needs to manually approve their own
+<ol>
+<li>User runs <code>vim .config/jj/config.toml</code></li>
+<li>User tries to test out the config, but needs to manually approve their own
    local change to the config every single time (this can at least be
-   mitigated via setting it to trust temporarily)</p>
+   mitigated via setting it to trust temporarily)</li>
+</ol>
 <h6 id="disabling-config-messes-with-the-repo">Disabling config messes with the repo<a class="headerlink" href="#disabling-config-messes-with-the-repo" title="Permanent link">&para;</a></h6>
-<p>1) User approves a config.
-2) User runs <code>jj git fetch</code>. There has been an update to the managed config.
-3) User runs <code>jj rebase -b @ -d trunk()</code>. The managed config is now not
-   approved, and thus the next jj command will have the config disabled.</p>
+<ol>
+<li>User approves a config.</li>
+<li>User runs <code>jj git fetch</code>. There has been an update to the managed config.</li>
+<li>User runs <code>jj rebase -b @ -o trunk()</code>. The managed config is now not
+   approved, and thus the next jj command will have the config disabled.</li>
+</ol>
 <p>Depending on what has changed, a variety of things could happen:</p>
 <ul>
 <li>A user in a repo that defines <code>trunk()</code> could run
-  <code>jj rebase -b &lt;revset&gt; -d trunk()</code><ul>
+  <code>jj rebase -b &lt;revset&gt; -o trunk()</code><ul>
 <li>This would result in it going to the wrong trunk</li>
 </ul>
 </li>
 <li>A user in a repo that defines <code>immutable_heads() = ...</code> could run something
-  like <code>jj rebase -b mutable() -d trunk()</code><ul>
+  like <code>jj rebase -b mutable() -o trunk()</code><ul>
 <li>This would rebase a bunch of immutable commits</li>
 </ul>
 </li>
 <li>A user in a repo that defines <code>pre-upload</code> hooks (which don't yet exist,
-  but are being planned) runs <code>jj gerrit upload</code> and bypasses them entirely. </li>
+  but are being planned) runs <code>jj gerrit upload</code> and bypasses them entirely.</li>
 </ul>
 <p>Thanks to the magic of <code>jj undo</code>, everything except the upload is recoverable.
 What makes them a problem, however, is the fact that a user would see the
-message "please approve /reject the config" and not suspect that the command
+message "please approve / reject the config" and not suspect that the command
 has failed.</p>
 <h6 id="best-effort-messes-with-the-user">Best-effort messes with the user<a class="headerlink" href="#best-effort-messes-with-the-user" title="Permanent link">&para;</a></h6>
 <p>If we use best-effort instead, we are likely to run into a different set of
 issues.</p>
-<p>The first is that it's no longer clear which config is being used. If I:
-1) Have two workspaces A and B with the same state, both approved.
-2) Sync workspace B and approve the config
-3) Check out an old version of workspace A</p>
+<p>The first is that it's no longer clear which config is being used. If I:</p>
+<ol>
+<li>Have two workspaces A and B with the same state, both approved.</li>
+<li>Sync workspace B and approve the config</li>
+<li>Check out an old version of workspace A</li>
+</ol>
 <p>Now which config is used?</p>
 <ul>
 <li>The most recently approved globally?</li>
@@ -2602,7 +2610,7 @@ with managed config.</p>
 <li>There was already a lot of
   <a href="https://github.com/jj-vcs/jj/pull/7761#discussion_r2476135221">discussion</a>
   on this topic, but no clear conclusion was reached.</li>
-<li>Technical (eg. disable vs best-effort)</li>
+<li>Technical (e.g., disable vs. best-effort)</li>
 <li>UX<ul>
 <li>When reviewing, do we review diffs or full config files?</li>
 <li>Do we prompt the user to review before running the command?</li>
@@ -2634,22 +2642,34 @@ from <code>trunk()</code>.</p>
 <p>Consider several different use cases:</p>
 <ul>
 <li>My formatter was previously <code>clang-format --foo</code>, but the option <code>--foo</code> was
-    deprecated in the latest version of <code>clang-format</code>
-    *   Here, you want to read from <code>trunk()</code></li>
+    deprecated in the latest version of <code>clang-format</code><ul>
+<li>Here, you want to read from <code>trunk()</code></li>
+</ul>
+</li>
 <li>My formatter was previously <code>$repo/formatter --foo</code>, but the option <code>--foo</code>
-    was deprecated in the latest version of <code>formatter</code>
-    *   Here, you want to read from <code>@</code></li>
+    was deprecated in the latest version of <code>formatter</code><ul>
+<li>Here, you want to read from <code>@</code></li>
+</ul>
+</li>
 <li>We decide to split long lines and add a new formatter (or pre-upload hook)
-    config <code>formatter --line-length=80</code>
-    *   Here, you probably want to read from <code>@</code></li>
+    config <code>formatter --line-length=80</code><ul>
+<li>Here, you probably want to read from <code>@</code></li>
+</ul>
+</li>
 <li>We decide to add a pre-upload check that validates that all commit
-    descriptions contain a reference to a bug
-    *   This should be applied to old branches as well, so you want <code>trunk()</code></li>
-<li>We add a new helpful alias / revset
-    *   This should be applied to old branches as well, so you want <code>trunk()</code></li>
-<li>We move our formatter
-    *   If it’s external, you want to read from <code>trunk()</code>
-    *   If it’s internal, you want to read from <code>@</code></li>
+    descriptions contain a reference to a bug<ul>
+<li>This should be applied to old branches as well, so you want <code>trunk()</code></li>
+</ul>
+</li>
+<li>We add a new helpful alias / revset<ul>
+<li>This should be applied to old branches as well, so you want <code>trunk()</code></li>
+</ul>
+</li>
+<li>We move our formatter<ul>
+<li>If it’s external, you want to read from <code>trunk()</code></li>
+<li>If it’s internal, you want to read from <code>@</code></li>
+</ul>
+</li>
 </ul>
 <p>All in all, you can see a general pattern.</p>
 <ul>

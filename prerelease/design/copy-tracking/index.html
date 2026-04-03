@@ -2794,7 +2794,7 @@ the <code>bar</code> file in commit <code>L</code> and the <code>bar</code> file
 the same is true for the <code>baz</code> file. Therefore, we break up their diffs into two
 separate diffs for each file.</p>
 <p>Among the remaining copy IDs, the shortest path in the copy graph is between
-<code>foo</code> on the source side and <code>baz</code> on the destination side, so we start with.
+<code>foo</code> on the source side and <code>baz</code> on the destination side, so we start with these.
 Since <code>foo</code> doesn't exist on the destination side and <code>baz</code> doesn't exist on the
 source side (with a related copy ID), we consider it a rename.</p>
 <p>The remaining file is <code>bar</code> on the source side. Its closest relative on the
@@ -2923,7 +2923,7 @@ It avoids surprises, and it makes the conflict algebra work in more cases.</p>
 <p>Let's say we rebase <code>M</code> onto <code>L</code>. Since we decided to not automatically
 propagate changes to copies, we will leave the <code>M+(L-K)</code> tree unresolved (i.e.
 without making any changes to the three trees). If the user does not resolve
-the conflict, and instead rebases <code>L</code> back onto <code>K</code>, the conflict will be
+the conflict, and instead rebases <code>M</code> back onto <code>K</code>, the conflict will be
 resolved automatically per the usual conflict simplification.</p>
 <h4 id="example-multiple-copies">Example: Multiple copies<a class="headerlink" href="#example-multiple-copies" title="Permanent link">&para;</a></h4>
 <div class="highlight"><pre><span></span><code><span class="go">N foo=&quot;N&quot;</span>
@@ -3102,7 +3102,7 @@ so we should propagate your changes to the new file location. As described
 earlier, we can do that by finding files that have a different copy ID since the
 last time you synced with the main branch. However, if there are 10 million new
 commits on the main branch, there's perhaps tens of thousands of such files
-spread across the entire tree. That can therefore can be very expensive to
+spread across the entire tree. That can therefore be very expensive to
 calculate. We therefore need to be able to get help from a custom backend
 implementation with this query.</p>
 <p>Since we are only interested in copy graphs that involve files modified in the

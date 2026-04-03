@@ -2408,8 +2408,8 @@ sparse; they simply track the full repo in most cases.</p>
 <p>The <code>WorkingCopy</code> type has a <code>TreeState</code> but also knows which <code>WorkspaceName</code> it
 has and at which operation it was most recently updated.</p>
 <h3 id="workspace">Workspace<a class="headerlink" href="#workspace" title="Permanent link">&para;</a></h3>
-<p>The <code>Workspace</code> type represents the combination of a repo and a working copy (
-like Git's 'worktree' concept).</p>
+<p>The <code>Workspace</code> type represents the combination of a repo and a working copy
+(like Git's <em>worktree</em> concept).</p>
 <p>The repo view at the current operation determines the desired working-copy
 commit in each workspace. The <code>WorkingCopy</code> determines what is actually in the
 working copy. The working copy can become stale if the working-copy commit was

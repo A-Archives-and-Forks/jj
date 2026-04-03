@@ -2325,9 +2325,9 @@ unpredictable.</li>
 </ul>
 <p>Some of these use-cases should get a specialized command, as this allows
 further optimization. A command could be <code>jj format</code>, which runs a list of
-formatters over a subset of a file in a revision. Another command could be
+formatters over a subset of the files in a revision. Another command could be
 <code>jj fix</code>, which runs a command like <code>rustfmt --fix</code> or <code>cargo clippy --fix</code> over
-a subset of a file in a revision.</p>
+a subset of the files in a revision.</p>
 <h2 id="design">Design<a class="headerlink" href="#design" title="Permanent link">&para;</a></h2>
 <h3 id="base-design">Base Design<a class="headerlink" href="#base-design" title="Permanent link">&para;</a></h3>
 <p>All the work will be done in the <code>.jj/</code> directory. This allows us to hide all
@@ -2347,7 +2347,7 @@ they take up space. That is especially problematic in the case of cargo (the
 ignored files can be used to address that. We may want to also have a flag for
 cleaning up temporary working copies <em>after</em> running the command.</p>
 <p>An early version of the command will directly use <a href="https://github.com/jj-vcs/jj/blob/af85f552b676d66ed0e9ae0d401cd0c4ffbbeb21/lib/src/working_copy.rs#L117">Treestate</a> to
-to manage the temporary working copies. That means that running <code>jj</code> inside the
+manage the temporary working copies. That means that running <code>jj</code> inside the
 temporary working copies will not work . We can later extend that to use a full
 <a href="https://github.com/jj-vcs/jj/blob/af85f552b676d66ed0e9ae0d401cd0c4ffbbeb21/lib/src/workspace.rs#L54">Workspace</a>. To prevent operations in the working copies from
 impacting the repo, we can use a separate <a href="https://github.com/jj-vcs/jj/blob/main/lib/src/op_heads_store.rs">OpHeadsStore</a> for it.</p>
@@ -2423,7 +2423,7 @@ communicate that information to jj.</li>
 </ul>
 <h2 id="command-options">Command Options<a class="headerlink" href="#command-options" title="Permanent link">&para;</a></h2>
 <p>The base command of any jj command should be usable. By default <code>jj run</code> works
-on the <code>@</code> the current working copy.</p>
+on <code>@</code>, the current working copy.</p>
 <ul>
 <li>--command, explicit name of the first argument</li>
 <li>-x, for git compatibility (may alias another command)</li>
@@ -2441,16 +2441,20 @@ command)</li>
 <li>--error-strategy=<code>continue|stop|fatal</code>, see <a href="#dealing-with-failure">Dealing with failure</a></li>
 </ul>
 <h3 id="integrating-with-other-commands">Integrating with other commands<a class="headerlink" href="#integrating-with-other-commands" title="Permanent link">&para;</a></h3>
-<p><code>jj log</code>: No special handling needed
-<code>jj diff</code>: No special handling needed
-<code>jj st</code>: For now reprint the final output of <code>jj run</code>
-<code>jj op log</code>: No special handling needed, but awaits further discussion in
-<a href="https://github.com/jj-vcs/jj/issues/963">#963</a>
-<code>jj undo/jj op revert</code>: No special handling needed</p>
+<ul>
+<li><code>jj log</code>: No special handling needed</li>
+<li><code>jj diff</code>: No special handling needed</li>
+<li><code>jj st</code>: For now reprint the final output of <code>jj run</code></li>
+<li><code>jj op log</code>: No special handling needed, but awaits further discussion in
+  <a href="https://github.com/jj-vcs/jj/issues/963">#963</a></li>
+<li><code>jj undo/jj op revert</code>: No special handling needed</li>
+</ul>
 <h2 id="open-points">Open Points<a class="headerlink" href="#open-points" title="Permanent link">&para;</a></h2>
-<p>Should the command be working copy backend specific?
-How do we manage the Processes which the command will spawn?
-Configuration options, User and Repository Wide?</p>
+<ul>
+<li>Should the command be working copy backend specific?</li>
+<li>How do we manage the Processes which the command will spawn?</li>
+<li>Configuration options, User and Repository Wide?</li>
+</ul>
 <h2 id="future-possibilities">Future possibilities<a class="headerlink" href="#future-possibilities" title="Permanent link">&para;</a></h2>
 <ul>
 <li>We could rewrite the file in memory, which is a neat optimization</li>
@@ -2459,7 +2463,7 @@ Configuration options, User and Repository Wide?</p>
 needed working copies.</li>
 <li>A Jujutsu wide concept for a cached working copy, as they could be expensive
 to materialize.</li>
-<li>Customized failure messages, this maybe useful for bots, it could be similar
+<li>Customized failure messages, this may be useful for bots, it could be similar
 to Bazel's <code>select(..., message = "arch not supported for $project")</code>.</li>
 <li>Make <code>jj run</code> asynchronous by spawning a <code>main</code> process, directly return to the
 user and incrementally updating the output of <code>jj st</code>.</li>

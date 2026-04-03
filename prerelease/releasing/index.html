@@ -1957,7 +1957,7 @@ the previous version tag with the new version tag
 (e.g. <code>https://github.com/jj-vcs/jj/compare/v0.32.0...v0.33.0</code>).</p>
 <p>Producing the list of contributors is a bit annoying. The current suggestion is
 to run something like this:</p>
-<div class="highlight"><pre><span></span><code><span class="nv">root</span><span class="o">=</span><span class="k">$(</span>jj<span class="w"> </span>log<span class="w"> </span>--no-graph<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;heads(tags(glob:&quot;v*.*.*&quot;) &amp; ::trunk())&#39;</span><span class="w"> </span>-T<span class="w"> </span>commit_id<span class="k">)</span>
+<div class="highlight"><pre><span></span><code><span class="nv">root</span><span class="o">=</span><span class="k">$(</span>jj<span class="w"> </span>log<span class="w"> </span>-G<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;heads(tags(glob:&quot;v*.*.*&quot;) &amp; ::trunk())&#39;</span><span class="w"> </span>-T<span class="w"> </span>commit_id<span class="k">)</span>
 <span class="nv">filter</span><span class="o">=</span><span class="s1">&#39;</span>
 <span class="s1">map(.commits[] | select(.author.login | (. != null and endswith(&quot;[bot]&quot;) | not)))</span>
 <span class="s1">  | unique_by(if .author.login != null then .author.login else .author.email end)</span>
@@ -1971,7 +1971,7 @@ gh<span class="w"> </span>api<span class="w"> </span><span class="s2">&quot;/rep
 </code></pre></div>
 <p><a href="https://docs.github.com/en/rest/commits/commits?apiVersion=2022-11-28#compare-two-commits">https://docs.github.com/en/rest/commits/commits?apiVersion=2022-11-28#compare-two-commits</a></p>
 <p>Alternatively, the list can be produced locally:</p>
-<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>log<span class="w"> </span>--no-graph<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;heads(tags())..main&#39;</span><span class="w"> </span>-T<span class="w"> </span><span class="s1">&#39;&quot;* &quot; ++ author ++ &quot;\n&quot;&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-fu
+<div class="highlight"><pre><span></span><code>jj<span class="w"> </span>log<span class="w"> </span>-G<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;heads(tags())..main&#39;</span><span class="w"> </span>-T<span class="w"> </span><span class="s1">&#39;&quot;* &quot; ++ author ++ &quot;\n&quot;&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-fu
 </code></pre></div>
 <p>Then try to find the right GitHub username for each person and copy their name
 and username from the GitHub page for the person
@@ -2008,7 +2008,7 @@ jj<span class="w"> </span>new<span class="w"> </span>v0.&lt;number&gt;.0
 <p>We recommend publishing from a new clone because <code>cargo publish</code> will
   archive ignored files if they match the patterns in <code>[include]</code>
   (<a href="https://github.com/jj-vcs/jj/blob/b95628c398c6c3d11f41bdf53d0aef11f92ee96d/lib/Cargo.toml#L15-L22">example</a>),
-  so it's a security risk to run it an existing clone where you may have
+  so it's a security risk to run it in an existing clone where you may have
   left sensitive content in an ignored file.&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
 </li>
 </ol>

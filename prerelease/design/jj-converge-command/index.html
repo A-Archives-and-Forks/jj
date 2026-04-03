@@ -2337,8 +2337,8 @@
 <p>Authors: <a href="mailto:drieber@google.com">David Rieber</a>,
 <a href="mailto:martinvonz@google.com">Martin von Zweigbergk</a></p>
 <p><strong>Summary:</strong> This document is a proposal for a new <code>jj converge</code> command to help
-users resolve (or reduce) divergence. The command will use heuristics --and
-sometimes will prompt the user for input-- to rewrite the N visible commits for
+users resolve (or reduce) divergence. The command will use heuristics -- and
+sometimes will prompt the user for input -- to rewrite the N visible commits for
 a given change with a single new commit, without introducing new divergence in
 the process. <code>jj resolve-divergence</code> will be an alias for <code>jj converge</code>.</p>
 <h2 id="objective">Objective<a class="headerlink" href="#objective" title="Permanent link">&para;</a></h2>
@@ -2366,11 +2366,11 @@ like the solution. <code>jj undo</code> can be used in that case.</p>
     timestamps that are otherwise identical</li>
 </ul>
 <p>As you read this design doc it is important to not confuse the
-<em>predecessor/successor</em> relationship versus the <em>ancestor/descendant</em>
+<em>predecessor / successor</em> relationship versus the <em>ancestor / descendant</em>
 relationship.</p>
 <h3 id="some-divergence-scenarios">Some divergence scenarios<a class="headerlink" href="#some-divergence-scenarios" title="Permanent link">&para;</a></h3>
 <p>Divergence can be introduced in many ways. This document does not aim to explain
-any/all of those scenarios accurately, this section is only meant to be rough
+any / all of those scenarios accurately, this section is only meant to be rough
 background material. Here are some examples:</p>
 <ul>
 <li>
@@ -2382,7 +2382,7 @@ background material. Here are some examples:</p>
     commits with the same change id.</p>
 </li>
 <li>
-<p>In general any interactive jj command (<code>jj split -i</code>, <code>jj squash -i</code>, etc)
+<p>In general any interactive jj command (<code>jj split -i</code>, <code>jj squash -i</code>, etc.)
     can lead to divergence in a similar way.</p>
 </li>
 <li>
@@ -2404,7 +2404,7 @@ background material. Here are some examples:</p>
 </li>
 <li>
 <p>There is a Google-specific jj upload command to upload a commit to Google's
-    review/test/submit system, and there is an associated Google-specific
+    review / test / submit system, and there is an associated Google-specific
     command to "download" a change from that system back to your jj repo. This
     can introduce divergence very much like in the Git scenario.</p>
 </li>
@@ -2429,8 +2429,9 @@ B/0 and B/1 may have other predecessors for unrelated change-ids, P may have
 predecessors (even for change-id B):
 
 B/0
-|  B/1
-| /
+|
+| B/1
+|/
 P
 </code></pre></div>
 <p>We will write <code>A⁻</code> to denote the parent trees of commit <code>A</code>.</p>
@@ -2449,13 +2450,14 @@ P
 <span class="go"> | B/0 (not visible)</span>
 <span class="go"> |/</span>
 <span class="go"> | B/1 (not visible)</span>
-<span class="go"> | /</span>
+<span class="go"> |/</span>
 <span class="go"> A</span>
 </code></pre></div>
 <p>Let's now consider two cases: when <em>P</em>'s parent is <em>A</em>, and when <em>P</em> has some
 other parent. First, if <em>P</em>'s parent is <em>A</em> we have:</p>
 <div class="highlight"><pre><span></span><code><span class="gp">$ </span>jj<span class="w"> </span>log
 <span class="go">B/0</span>
+<span class="go">|</span>
 <span class="go">| B/1</span>
 <span class="go">|/</span>
 <span class="go">| P (not visible)</span>
@@ -2498,8 +2500,8 @@ a new commit (this could result in cycles in the evolog).</p>
 <span class="go">| B/1</span>
 <span class="go">|/</span>
 <span class="go">A</span>
-<span class="go">|  P (not visible)</span>
-<span class="go">| /</span>
+<span class="go">| P (not visible)</span>
+<span class="go">|/</span>
 <span class="go">X</span>
 </code></pre></div>
 <p>In this case we first rebase <em>P</em> onto <em>A</em> (in-memory) to produce <code>P' = A + (P -
@@ -2510,7 +2512,7 @@ parent of the solution is <em>A</em>.</p>
 <div class="highlight"><pre><span></span><code><span class="gp">$ </span>jj<span class="w"> </span>log
 <span class="go">B/0</span>
 <span class="go">|</span>
-<span class="go">|  B/1</span>
+<span class="go">|   B/1</span>
 <span class="go">|  /</span>
 <span class="go">| C</span>
 <span class="go">|/</span>
@@ -2521,12 +2523,12 @@ the solution. Let's first consider the case where <em>P</em> is a child of <em>A
 <div class="highlight"><pre><span></span><code><span class="gp">$ </span>jj<span class="w"> </span>log
 <span class="go">B/0</span>
 <span class="go">|</span>
-<span class="go">|  B/1</span>
+<span class="go">|   B/1</span>
 <span class="go">|  /</span>
 <span class="go">| C</span>
 <span class="go">|/</span>
-<span class="go">|  P (not visible)</span>
-<span class="go">| /</span>
+<span class="go">| P (not visible)</span>
+<span class="go">|/</span>
 <span class="go">A</span>
 </code></pre></div>
 <p>We determine the parent(s) of the solution as follows:</p>
@@ -2553,8 +2555,8 @@ different:</p>
 <span class="go">| C</span>
 <span class="go">|/</span>
 <span class="go">A</span>
-<span class="go">|  P (not visible)</span>
-<span class="go">| /</span>
+<span class="go">| P (not visible)</span>
+<span class="go">|/</span>
 <span class="go">X</span>
 </code></pre></div>
 <p>In this case parents will be</p>
@@ -2573,10 +2575,10 @@ parent/child relationship):
 
 B/0&#39;
 |
-|  B/1&#39;
+| B/1&#39;
 |/
-|  P&#39;
-| /
+| P&#39;
+|/
 C
 </code></pre></div>
 <p>As a result we obtain <em>B/0'</em>, <em>B/1'</em> and <em>P'</em>, and these are sibling commits. At
@@ -2625,8 +2627,8 @@ even for change-id B):
 B/0     (description: &quot;v3&quot;)
 |
 |  B/1  (description: &quot;v2&quot;)
-Q  /    (description: &quot;v2&quot;)
-| /
+Q /     (description: &quot;v2&quot;)
+|/
 P       (description: &quot;v1&quot;)
 </code></pre></div>
 <p>Commit <em>P</em> evolved into <em>Q</em> and <em>B/1</em>, and <em>Q</em> evolved into <em>B/0</em>. As before
@@ -2666,8 +2668,8 @@ another example:</p>
 B/0     ( foo.txt contents: &quot;v3&quot; )
 |
 |  B/1  ( foo.txt contents: &quot;v2&quot; )
-Q  /    ( foo.txt contents: &quot;v1&quot; )
-| /
+Q /     ( foo.txt contents: &quot;v1&quot; )
+|/
 P       ( foo.txt contents: &quot;v1&quot; )
 </code></pre></div>
 <p>In this case <em>try_resolve_deduplicating_same_diffs</em> produces none. jj converge
@@ -2694,7 +2696,7 @@ commits with change-ids other than <em>B</em>, and none of those are descendants
 <p>then we would introduce new divergence or cycles in the commit graph if we based
 on the solution on such candidate parents. In these edge cases the command will
 simply discard the candidate parents and will instead ask the user to choose
-which parents to use (or quit quit without making any changes). Care must be
+which parents to use (or quit without making any changes). Care must be
 taken when picking the options to present to the user for choosing parents:
 essentially the user will choose between the parents of <em>B/0</em>, the parents of
 <em>B/1</em>, and so on, but we will skip any <em>B/i</em> if any of the parents of <em>B/i</em>
@@ -2731,7 +2733,7 @@ probably best to error out.</p>
 <h3 id="automatically-resolving-divergence">Automatically resolving divergence<a class="headerlink" href="#automatically-resolving-divergence" title="Permanent link">&para;</a></h3>
 <p>It would be nice if divergence was avoided in the first place, at least in some
 cases, at the point where jj is about to introduce the second (or third or
-fourth etc) visible commit for a given change id. This should be investigated
+fourth, etc.) visible commit for a given change id. This should be investigated
 separately.</p>
 <h3 id="resolve-divergence-two-commits-at-a-time">Resolve divergence two commits at a time<a class="headerlink" href="#resolve-divergence-two-commits-at-a-time" title="Permanent link">&para;</a></h3>
 <p>The algorithm in this proposal should work when there are any number of

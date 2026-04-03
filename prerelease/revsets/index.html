@@ -2108,7 +2108,7 @@ search space. They are included in <code>all()</code>, <code>x..</code>, <code>~
 <h2 id="symbols">Symbols<a class="headerlink" href="#symbols" title="Permanent link">&para;</a></h2>
 <p>The <code>@</code> expression refers to the working copy commit in the current workspace.
 Use <code>&lt;workspace name&gt;@</code> to refer to the working-copy commit in another
-workspace. Use <code>&lt;name&gt;@&lt;remote&gt;</code> to refer to a remote-tracking tag/bookmark.</p>
+workspace. Use <code>&lt;name&gt;@&lt;remote&gt;</code> to refer to a remote-tracking tag / bookmark.</p>
 <p>A full commit ID refers to a single commit. A unique prefix of the full commit
 ID can also be used. It is an error to use a non-unique prefix.</p>
 <p>A full change ID refers to a visible commit with that change ID. A unique prefix
@@ -2174,7 +2174,7 @@ y) | z</code> or <code>x &amp; (y | z)</code>.</p>
     to <code>x:: &amp; ::y</code>. This is what <code>git log</code> calls <code>--ancestry-path x..y</code>.</li>
 <li><code>x..y</code>: Ancestors of <code>y</code> that are not also ancestors of <code>x</code>. Equivalent to
    <code>::y ~ ::x</code>. This is what <code>git log</code> calls <code>x..y</code> (i.e. the same as we call it).
-   Note that this is <em>not</em> a "path" between <code>x</code> and <code>y</code> in the commit graph—<code>x</code>
+   Note that this is <em>not</em> a "path" between <code>x</code> and <code>y</code> in the commit graph -- <code>x</code>
    and <code>y</code> do not need to be related by ancestry.</li>
 <li><code>::</code>: All visible commits in the repo. Equivalent to <code>all()</code>, and
    <code>root()::visible_heads()</code> if no hidden revisions are mentioned.</li>
@@ -2205,7 +2205,7 @@ side. For example, <code>(A | B)..</code> is <strong>not</strong> equivalent to 
 expression <code>(A | B)..</code> means "commits that are not ancestors of A <em>and</em> not
 ancestors of B", while <code>A.. | B..</code> means "commits that are not ancestors of A
 <em>or</em> not ancestors of B". In fact, <code>(A | B).. = A.. &amp; B..</code>. See the examples
-*below for concrete illustrations.</p>
+below for concrete illustrations.</p>
 <!-- The following format will be understood by the web site generator, and will
  generate a folded section that can be unfolded at will. -->
 
