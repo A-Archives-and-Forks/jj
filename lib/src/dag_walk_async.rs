@@ -483,6 +483,7 @@ where
     let mut frontier: Vec<T> = heads.iter().cloned().collect();
     let mut visited: HashSet<ID> = heads.iter().map(&id_fn).collect();
     let mut root_reached = false;
+    #[expect(clippy::redundant_closure)]
     while frontier.len() > 1 || (!frontier.is_empty() && root_reached) {
         let neighbors_lists = try_join_all(frontier.iter().map(|node| neighbors_fn(node))).await?;
         let mut new_frontier = vec![];
@@ -521,6 +522,7 @@ where
 
     let mut work1: Vec<T> = set1.into_iter().collect();
     let mut work2: Vec<T> = set2.into_iter().collect();
+    #[expect(clippy::redundant_closure)]
     while !work1.is_empty() || !work2.is_empty() {
         let mut live1 = vec![];
         for node in work1 {
