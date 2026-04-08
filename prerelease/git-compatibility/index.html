@@ -2257,8 +2257,14 @@ were added to your working copy. You will probably want to run
 a non-standard header and is not preserved by all <code>git</code> tooling. For example,
 the header is preserved by a <code>git commit --amend</code>, but is not preserved through
 a rebase operation. GitHub and other major forges seem to preserve them for the
-most part. This functionality is currently behind a <code>git.write-change-id-header</code>
-flag.</p>
+most part. The header is written by default in commits created by <code>jj</code> (since
+version <code>0.30.0</code>) and this functionality can be turned off using the
+<code>git.write-change-id-header</code> setting.</p>
+<p>Note that <code>git show</code> and <code>git log</code> do not print this header. To verify presence
+of a <code>change-id</code> commit header using <code>git</code> itself, use
+<a href="https://git-scm.com/docs/git-cat-file"><code>git-cat-file</code></a> like this:</p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>cat-file<span class="w"> </span>-p<span class="w"> </span>&lt;commit<span class="w"> </span>ref&gt;
+</code></pre></div>
 
 
 
