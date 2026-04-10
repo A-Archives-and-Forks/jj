@@ -9027,6 +9027,10 @@ configuration.</p>
 <ul>
 <li><code>-s</code>, <code>--source &lt;REVSETS&gt;</code> — Fix files in the specified revision(s) and their descendants. If no revisions are specified, this defaults to the <code>revsets.fix</code> setting, or <code>reachable(@, mutable())</code> if it is not set</li>
 <li><code>--include-unchanged-files</code> — Fix unchanged files in addition to changed ones. If no paths are specified, all files in the repo will be fixed</li>
+<li>
+<p><code>-a</code>, <code>--all-lines</code> — Format all lines instead of only modified lines.</p>
+<p>If the formatter doesn't support formatting only modified lines, then this option has no effect since the formatter always formats all lines.</p>
+</li>
 </ul>
 <h2 id="jj-gerrit"><code>jj gerrit</code><a class="headerlink" href="#jj-gerrit" title="Permanent link">&para;</a></h2>
 <p>Interact with Gerrit Code Review</p>

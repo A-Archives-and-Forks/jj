@@ -6934,6 +6934,12 @@ to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <p>A new config option <code>diff.git.show-path-prefix</code> can be used to suppress the
   <code>a/</code> and <code>b/</code> path prefixes in the <code>diff --git</code> output.</p>
 </li>
+<li>
+<p><code>jj fix</code> now supports line range-limited formatting via the <code>fix.tools.&lt;name&gt;.line-range-arg</code>
+  and <code>run-tool-if-zero-line-ranges</code> configs. This allows running tools only on modified
+  lines and fine-grained control over when the tool is run. If you have set the <code>line-range-arg</code>
+  config, use <code>--all-lines</code> to match the previous behavior of formatting the entire file.</p>
+</li>
 </ul>
 <h3 id="fixed-bugs">Fixed bugs<a class="headerlink" href="#fixed-bugs" title="Permanent link">&para;</a></h3>
 <ul>

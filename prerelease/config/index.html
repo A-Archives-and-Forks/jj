@@ -1478,6 +1478,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#enforce-code-formatting-on-modified-lines" class="md-nav__link">
+    <span class="md-ellipsis">
+      Enforce code formatting on modified lines
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#tools-stored-inside-the-workspace" class="md-nav__link">
     <span class="md-ellipsis">
       Tools stored inside the workspace
@@ -3418,6 +3427,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#enforce-code-formatting-on-modified-lines" class="md-nav__link">
+    <span class="md-ellipsis">
+      Enforce code formatting on modified lines
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#tools-stored-inside-the-workspace" class="md-nav__link">
     <span class="md-ellipsis">
       Tools stored inside the workspace
@@ -4917,6 +4935,28 @@ the values have the following properties:</p>
 <li><code>enabled</code>: Enables or disables the tool. If omitted, the tool is enabled.
    This is useful for defining disabled tools in user configuration that can
    be enabled in individual repositories with one config setting.</li>
+<li><code>line-range-arg</code>: An optional template string specifying how to pass a line
+   range to the tool. It may include the variables <code>$first</code> and <code>$last</code>, which
+   will be replaced with the 1-based line numbers of, respectively, the first
+   and last lines inside the modified range. A range containing a single line
+   will have equal values for <code>$first</code> and <code>$last</code>. Empty ranges representing
+   deletions will be skipped because they cannot be represented this way.
+   If the tool does not support formatting specific line ranges, this setting
+   should be omitted, and the tool will always process the entire file.
+   Example: <code>line-range-arg = "--lines=$first:$last"</code>.</li>
+<li>
+<p><code>run-tool-if-zero-line-ranges</code>: Whether to run the tool invocation for this tool on
+   files that had zero line ranges to format in the revision being fixed.
+   Defaults to <code>false</code>, meaning the tool is skipped for these files. This default
+   behavior serves two main purposes:</p>
+<ul>
+<li>Avoiding unnecessary executions of tools when no line ranges are modified.</li>
+<li>Preventing tools configured with <code>line-range-arg</code> from making overly
+   broad changes (formatting the whole file) when no line ranges are available.</li>
+</ul>
+<p>Setting this to <code>true</code> is useful if the tool should run regardless of diffs
+ (e.g., to sort imports, or run with <code>--include-unchanged-files</code>).</p>
+</li>
 </ul>
 <p><code>jj fix</code> provides the file content anonymously on standard input, but the name
 of the file being formatted may be important for include sorting or other output
@@ -4937,6 +4977,31 @@ to keep the file sorted alphabetically and remove any duplicate words.</p>
 <div class="highlight"><pre><span></span><code><span class="k">[fix.tools.sort-word-list]</span>
 <span class="n">command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;sort&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-u&quot;</span><span class="p">]</span>
 <span class="n">patterns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;word_list.txt&quot;</span><span class="p">]</span>
+</code></pre></div>
+<h3 id="enforce-code-formatting-on-modified-lines">Enforce code formatting on modified lines<a class="headerlink" href="#enforce-code-formatting-on-modified-lines" title="Permanent link">&para;</a></h3>
+<p>You can configure <code>jj fix</code> to run a formatter only on the modified lines of a
+file, rather than formatting the entire file. This is particularly useful for
+avoiding unrelated formatting changes in untouched parts of a file.</p>
+<p>To enable this, specify the <code>line-range-arg</code> configuration to match the line
+range argument format expected by your tool. The formatter will be invoked with
+this argument repeated for each modified line range (e.g. <code>--lines=10-20
+--lines=30-40</code>).</p>
+<p>Additionally, you can use <code>run-tool-if-zero-line-ranges</code> to control the
+behavior when a diff results in zero line ranges (which can happen when lines
+are only deleted or with <code>--include-unchanged-files</code>). If <code>false</code> (the default),
+<code>jj</code> will skip the tool entirely for that file. If <code>true</code>, <code>jj</code> will run the tool
+even when there are zero line ranges calculated. This is useful for tools that
+perform file-wide operations, such as import sorting.</p>
+<p>Note that you can use the <code>--all-lines</code> CLI flag for <code>jj fix</code> to ignore these
+line ranges and format the entire modified file instead.</p>
+<p>Example of <code>clang-format</code> with line ranges:</p>
+<div class="highlight"><pre><span></span><code><span class="k">[fix.tools.clang-format]</span>
+<span class="n">command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;/usr/bin/clang-format&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--assume-filename=$path&quot;</span><span class="p">]</span>
+<span class="n">patterns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;glob:&#39;**/*.cc&#39;&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;glob:&#39;**/*.h&#39;&quot;</span><span class="p">]</span>
+<span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="n">line-range-arg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;--lines=$first:$last&quot;</span>
+<span class="n">run-tool-if-zero-line-ranges</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 </code></pre></div>
 <h3 id="tools-stored-inside-the-workspace">Tools stored inside the workspace<a class="headerlink" href="#tools-stored-inside-the-workspace" title="Permanent link">&para;</a></h3>
 <p>Some fix tools may be stored inside the workspace. For example, a binary may be
