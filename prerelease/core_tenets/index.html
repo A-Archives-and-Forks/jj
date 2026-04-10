@@ -1916,7 +1916,8 @@
 <li>All operations must be able to scale to Google-scale repos (lots of commits,
    lots of files): Laziness is important, must avoid accessing data
    unnecessarily.</li>
-<li>Having as few states as possible.</li>
+<li>Strive to be modeless: If at all possible commands should work consistently
+   and as the user expects in every situation.</li>
 <li>Make it incredibly hard to lose work in your repo.</li>
 <li>Concurrent modifications to the repo should be safe.</li>
 <li>Allow concurrent edits on any commit, pending or finished.</li>
