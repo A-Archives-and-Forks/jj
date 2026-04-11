@@ -47,6 +47,7 @@ use clap::error::ContextKind;
 use clap::error::ContextValue;
 use clap_complete::ArgValueCandidates;
 use clap_complete::ArgValueCompleter;
+use futures::TryStreamExt as _;
 use indexmap::IndexMap;
 use indexmap::IndexSet;
 use indoc::indoc;
@@ -114,8 +115,8 @@ use jj_lib::revset::RevsetExpression;
 use jj_lib::revset::RevsetExtensions;
 use jj_lib::revset::RevsetFilterPredicate;
 use jj_lib::revset::RevsetFunction;
-use jj_lib::revset::RevsetIteratorExt as _;
 use jj_lib::revset::RevsetParseContext;
+use jj_lib::revset::RevsetStreamExt as _;
 use jj_lib::revset::RevsetWorkspaceContext;
 use jj_lib::revset::SymbolResolverExtension;
 use jj_lib::revset::UserRevsetExpression;
@@ -127,6 +128,7 @@ use jj_lib::str_util::StringExpression;
 use jj_lib::str_util::StringMatcher;
 use jj_lib::str_util::StringPattern;
 use jj_lib::transaction::Transaction;
+use jj_lib::transaction::TransactionCommitError;
 use jj_lib::working_copy;
 use jj_lib::working_copy::CheckoutStats;
 use jj_lib::working_copy::FilterIgnoreReason;
@@ -416,6 +418,23 @@ impl CommandHelper {
         Ok(template)
     }
 
+    pub fn should_commit_transaction(&self) -> bool {
+        !self.global_args().no_integrate_operation
+    }
+
+    async fn maybe_commit_transaction(
+        &self,
+        tx: Transaction,
+        description: impl Into<String>,
+    ) -> Result<Arc<ReadonlyRepo>, TransactionCommitError> {
+        let unpublished_op = tx.write(description).await?;
+        if self.should_commit_transaction() {
+            unpublished_op.publish().await
+        } else {
+            Ok(unpublished_op.leave_unpublished())
+        }
+    }
+
     pub fn workspace_loader(&self) -> Result<&dyn WorkspaceLoader, CommandError> {
         self.data
             .maybe_workspace_loader
@@ -454,7 +473,8 @@ impl CommandHelper {
     ) -> Result<(WorkspaceCommandHelper, SnapshotStats), CommandError> {
         let mut workspace_command = self.workspace_helper_no_snapshot(ui)?;
 
-        let (workspace_command, stats) = match workspace_command.maybe_snapshot_impl(ui) {
+        let (workspace_command, stats) = match workspace_command.maybe_snapshot_impl(ui).block_on()
+        {
             Ok(stats) => (workspace_command, stats),
             Err(SnapshotWorkingCopyError::Command(err)) => return Err(err),
             Err(SnapshotWorkingCopyError::StaleWorkingCopy(err)) => {
@@ -467,7 +487,7 @@ impl CommandHelper {
                 // auto-update-stale, so let's do that now. We need to do it up here, not at a
                 // lower level (e.g. inside snapshot_working_copy()) to avoid recursive locking
                 // of the working copy.
-                self.recover_stale_working_copy(ui)?
+                self.recover_stale_working_copy(ui).block_on()?
             }
         };
 
@@ -482,7 +502,8 @@ impl CommandHelper {
         ui: &Ui,
     ) -> Result<WorkspaceCommandHelper, CommandError> {
         let workspace = self.load_workspace()?;
-        let op_head = self.resolve_operation(ui, workspace.repo_loader())?;
+        let op_head =
+            self.resolve_operation(ui, workspace.repo_loader(), workspace.workspace_name())?;
         let repo = workspace.repo_loader().load_at(&op_head).block_on()?;
         let mut env = self.workspace_environment(ui, &workspace)?;
         if let Err(err) =
@@ -559,16 +580,16 @@ impl CommandHelper {
     /// Note that unless you have a good reason not to do so, you should always
     /// call [`print_snapshot_stats`] with the [`SnapshotStats`] returned by
     /// this function to present possible untracked files to the user.
-    pub fn recover_stale_working_copy(
+    pub async fn recover_stale_working_copy(
         &self,
         ui: &Ui,
     ) -> Result<(WorkspaceCommandHelper, SnapshotStats), CommandError> {
         let workspace = self.load_workspace()?;
         let op_id = workspace.working_copy().operation_id();
 
-        match workspace.repo_loader().load_operation(op_id).block_on() {
+        match workspace.repo_loader().load_operation(op_id).await {
             Ok(op) => {
-                let repo = workspace.repo_loader().load_at(&op).block_on()?;
+                let repo = workspace.repo_loader().load_at(&op).await?;
                 let mut workspace_command = self.for_workable_repo(ui, workspace, repo)?;
                 workspace_command.check_working_copy_writable()?;
 
@@ -578,12 +599,12 @@ impl CommandHelper {
                 // fine if we picked the new wc_commit_id.
                 let stale_stats = workspace_command
                     .snapshot_working_copy(ui)
-                    .block_on()
+                    .await
                     .map_err(|err| err.into_command_error())?;
 
                 let wc_commit_id = workspace_command.get_wc_commit_id().unwrap();
                 let repo = workspace_command.repo().clone();
-                let stale_wc_commit = repo.store().get_commit(wc_commit_id)?;
+                let stale_wc_commit = repo.store().get_commit_async(wc_commit_id).await?;
                 let path_converter = workspace_command.path_converter();
 
                 let mut workspace_command = self.workspace_helper_no_snapshot(ui)?;
@@ -596,7 +617,7 @@ impl CommandHelper {
                     &desired_wc_commit,
                     &repo,
                 )
-                .block_on()?
+                .await?
                 {
                     WorkingCopyFreshness::Fresh | WorkingCopyFreshness::Updated(_) => {
                         drop(locked_ws);
@@ -613,7 +634,8 @@ impl CommandHelper {
                             &stale_wc_commit,
                             &desired_wc_commit,
                             path_converter,
-                        )?;
+                        )
+                        .await?;
                         workspace_command.print_updated_working_copy_stats(
                             ui,
                             Some(&stale_wc_commit),
@@ -634,6 +656,7 @@ impl CommandHelper {
                 // should be no data loss at least.
                 let fresh_stats = workspace_command
                     .maybe_snapshot_impl(ui)
+                    .await
                     .map_err(|err| err.into_command_error())?;
                 let merged_stats = {
                     let SnapshotStats {
@@ -657,7 +680,9 @@ impl CommandHelper {
                 )?;
 
                 let mut workspace_command = self.workspace_helper_no_snapshot(ui)?;
-                let stats = workspace_command.create_and_check_out_recovery_commit(ui)?;
+                let stats = workspace_command
+                    .create_and_check_out_recovery_commit(ui)
+                    .await?;
                 Ok((workspace_command, stats))
             }
             Err(e) => Err(e.into()),
@@ -698,6 +723,7 @@ impl CommandHelper {
         &self,
         ui: &Ui,
         repo_loader: &RepoLoader,
+        workspace_name: &WorkspaceName,
     ) -> Result<Operation, CommandError> {
         if let Some(op_str) = &self.data.global_args.at_operation {
             Ok(op_walk::resolve_op_for_load(repo_loader, op_str).block_on()?)
@@ -712,7 +738,8 @@ impl CommandHelper {
                     )?;
                     let base_repo = repo_loader.load_at(&op_heads[0]).block_on()?;
                     // TODO: It may be helpful to print each operation we're merging here
-                    let mut tx = start_repo_transaction(&base_repo, &self.data.string_args);
+                    let mut tx =
+                        start_repo_transaction(&base_repo, workspace_name, &self.data.string_args);
                     for other_op_head in op_heads.into_iter().skip(1) {
                         tx.merge_operation(other_op_head).await?;
                         let num_rebased = tx.repo_mut().rebase_descendants().await?;
@@ -988,7 +1015,7 @@ impl WorkspaceCommandEnvironment {
     }
 
     /// Returns first immutable commit.
-    fn find_immutable_commit(
+    async fn find_immutable_commit(
         &self,
         repo: &dyn Repo,
         to_rewrite_expr: &Arc<ResolvedRevsetExpression>,
@@ -1015,8 +1042,8 @@ impl WorkspaceCommandEnvironment {
         let mut commit_id_iter = immutable_expr
             .intersection(to_rewrite_expr)
             .evaluate(repo)?
-            .iter();
-        Ok(commit_id_iter.next().transpose()?)
+            .stream();
+        Ok(commit_id_iter.try_next().await?)
     }
 
     pub fn template_aliases_map(&self) -> &TemplateAliasesMap {
@@ -1086,6 +1113,7 @@ pub struct WorkspaceCommandHelper {
     // TODO: Parsed template can be cached if it doesn't capture 'repo lifetime
     commit_summary_template_text: String,
     op_summary_template_text: String,
+    may_snapshot_working_copy: bool,
     may_update_working_copy: bool,
     working_copy_shared_with_git: bool,
 }
@@ -1123,8 +1151,10 @@ impl WorkspaceCommandHelper {
         let settings = workspace.settings();
         let commit_summary_template_text = settings.get_string("templates.commit_summary")?;
         let op_summary_template_text = settings.get_string("templates.op_summary")?;
-        let may_update_working_copy =
+        let may_snapshot_working_copy =
             loaded_at_head && !env.command.global_args().ignore_working_copy;
+        let may_update_working_copy =
+            may_snapshot_working_copy && env.command.should_commit_transaction();
         let working_copy_shared_with_git =
             crate::git_util::is_colocated_git_workspace(&workspace, &repo);
 
@@ -1134,6 +1164,7 @@ impl WorkspaceCommandHelper {
             env,
             commit_summary_template_text,
             op_summary_template_text,
+            may_snapshot_working_copy,
             may_update_working_copy,
             working_copy_shared_with_git,
         };
@@ -1156,6 +1187,8 @@ impl WorkspaceCommandHelper {
         } else {
             let hint = if self.env.command.global_args().ignore_working_copy {
                 "Don't use --ignore-working-copy."
+            } else if self.env.command.global_args().no_integrate_operation {
+                "Don't use --no-integrate-operation."
             } else {
                 "Don't use --at-op."
             };
@@ -1183,8 +1216,11 @@ impl WorkspaceCommandHelper {
     /// call [`print_snapshot_stats`] with the [`SnapshotStats`] returned by
     /// this function to present possible untracked files to the user.
     #[instrument(skip_all)]
-    fn maybe_snapshot_impl(&mut self, ui: &Ui) -> Result<SnapshotStats, SnapshotWorkingCopyError> {
-        if !self.may_update_working_copy {
+    async fn maybe_snapshot_impl(
+        &mut self,
+        ui: &Ui,
+    ) -> Result<SnapshotStats, SnapshotWorkingCopyError> {
+        if !self.may_snapshot_working_copy {
             return Ok(SnapshotStats::default());
         }
 
@@ -1203,18 +1239,18 @@ impl WorkspaceCommandHelper {
             let op_heads_store = repo.loader().op_heads_store();
             let op_heads = op_heads_store
                 .get_op_heads()
-                .block_on()
+                .await
                 .map_err(snapshot_command_error)?;
             if std::slice::from_ref(repo.op_id()) != op_heads {
                 let op = self
                     .env
                     .command
-                    .resolve_operation(ui, repo.loader())
+                    .resolve_operation(ui, repo.loader(), self.workspace_name())
                     .map_err(snapshot_command_error)?;
                 let current_repo = repo
                     .loader()
                     .load_at(&op)
-                    .block_on()
+                    .await
                     .map_err(snapshot_command_error)?;
                 self.user_repo = ReadonlyUserRepo::new(current_repo);
             }
@@ -1223,18 +1259,20 @@ impl WorkspaceCommandHelper {
         #[cfg(feature = "git")]
         if self.working_copy_shared_with_git {
             self.import_git_head(ui, &git_import_export_lock)
+                .await
                 .map_err(snapshot_command_error)?;
         }
         // Because the Git refs (except HEAD) aren't imported yet, the ref
         // pointing to the new working-copy commit might not be exported.
         // In that situation, the ref would be conflicted anyway, so export
         // failure is okay.
-        let stats = self.snapshot_working_copy(ui).block_on()?;
+        let stats = self.snapshot_working_copy(ui).await?;
 
         // import_git_refs() can rebase the working-copy commit.
         #[cfg(feature = "git")]
         if self.working_copy_shared_with_git {
             self.import_git_refs(ui, &git_import_export_lock)
+                .await
                 .map_err(snapshot_command_error)?;
         }
         Ok(stats)
@@ -1245,10 +1283,11 @@ impl WorkspaceCommandHelper {
     ///
     /// Returns whether a snapshot was taken.
     #[instrument(skip_all)]
-    pub fn maybe_snapshot(&mut self, ui: &Ui) -> Result<bool, CommandError> {
+    pub async fn maybe_snapshot(&mut self, ui: &Ui) -> Result<bool, CommandError> {
         let op_id_before = self.repo().op_id().clone();
         let stats = self
             .maybe_snapshot_impl(ui)
+            .await
             .map_err(|err| err.into_command_error())?;
         print_snapshot_stats(ui, &stats, self.env().path_converter())?;
         let op_id_after = self.repo().op_id();
@@ -1263,14 +1302,14 @@ impl WorkspaceCommandHelper {
     /// working-copy contents won't be updated.
     #[cfg(feature = "git")]
     #[instrument(skip_all)]
-    fn import_git_head(
+    async fn import_git_head(
         &mut self,
         ui: &Ui,
         git_import_export_lock: &GitImportExportLock,
     ) -> Result<(), CommandError> {
-        assert!(self.may_update_working_copy);
+        assert!(self.may_snapshot_working_copy);
         let mut tx = self.start_transaction();
-        jj_lib::git::import_head(tx.repo_mut()).block_on()?;
+        jj_lib::git::import_head(tx.repo_mut()).await?;
         if !tx.repo().has_changes() {
             return Ok(());
         }
@@ -1284,17 +1323,24 @@ impl WorkspaceCommandHelper {
             let wc_commit = tx
                 .repo_mut()
                 .check_out(workspace_name, &new_git_head_commit)
-                .block_on()?;
+                .await?;
             let mut locked_ws = self.workspace.start_working_copy_mutation()?;
             // The working copy was presumably updated by the git command that updated
             // HEAD, so we just need to reset our working copy
             // state to it without updating working copy files.
-            locked_ws.locked_wc().reset(&wc_commit).block_on()?;
-            tx.repo_mut().rebase_descendants().block_on()?;
-            self.user_repo = ReadonlyUserRepo::new(tx.commit("import git head").block_on()?);
-            locked_ws
-                .finish(self.user_repo.repo.op_id().clone())
-                .block_on()?;
+            locked_ws.locked_wc().reset(&wc_commit).await?;
+            tx.repo_mut().rebase_descendants().await?;
+            self.user_repo = ReadonlyUserRepo::new(
+                self.env
+                    .command
+                    .maybe_commit_transaction(tx, "import git head")
+                    .await?,
+            );
+            if self.env.command.should_commit_transaction() {
+                locked_ws
+                    .finish(self.user_repo.repo.op_id().clone())
+                    .await?;
+            }
             if old_git_head.is_present() {
                 writeln!(
                     ui.status(),
@@ -1305,7 +1351,8 @@ impl WorkspaceCommandHelper {
             }
         } else {
             // Unlikely, but the HEAD ref got deleted by git?
-            self.finish_transaction(ui, tx, "import git head", git_import_export_lock)?;
+            self.finish_transaction(ui, tx, "import git head", git_import_export_lock)
+                .await?;
         }
         Ok(())
     }
@@ -1320,7 +1367,7 @@ impl WorkspaceCommandHelper {
     /// the working copy parent if the repository is colocated.
     #[cfg(feature = "git")]
     #[instrument(skip_all)]
-    fn import_git_refs(
+    async fn import_git_refs(
         &mut self,
         ui: &Ui,
         git_import_export_lock: &GitImportExportLock,
@@ -1331,7 +1378,7 @@ impl WorkspaceCommandHelper {
         let import_options =
             crate::git_util::load_git_import_options(ui, &git_settings, &remote_settings)?;
         let mut tx = self.start_transaction();
-        let stats = git::import_refs(tx.repo_mut(), &import_options).block_on()?;
+        let stats = git::import_refs(tx.repo_mut(), &import_options).await?;
         crate::git_util::print_git_import_stats_summary(ui, &stats)?;
         if !tx.repo().has_changes() {
             return Ok(());
@@ -1339,14 +1386,15 @@ impl WorkspaceCommandHelper {
 
         let mut tx = tx.into_inner();
         // Rebase here to show slightly different status message.
-        let num_rebased = tx.repo_mut().rebase_descendants().block_on()?;
+        let num_rebased = tx.repo_mut().rebase_descendants().await?;
         if num_rebased > 0 {
             writeln!(
                 ui.status(),
                 "Rebased {num_rebased} descendant commits off of commits rewritten from git"
             )?;
         }
-        self.finish_transaction(ui, tx, "import git refs", git_import_export_lock)?;
+        self.finish_transaction(ui, tx, "import git refs", git_import_export_lock)
+            .await?;
         writeln!(
             ui.status(),
             "Done importing changes from the underlying Git repo."
@@ -1401,7 +1449,7 @@ impl WorkspaceCommandHelper {
         Ok((locked_ws, wc_commit))
     }
 
-    fn create_and_check_out_recovery_commit(
+    async fn create_and_check_out_recovery_commit(
         &mut self,
         ui: &Ui,
     ) -> Result<SnapshotStats, CommandError> {
@@ -1422,17 +1470,18 @@ what the parent commits are supposed to be. That means that the diff compared
 to the current parents may contain changes from multiple commits.
 ",
         )
-        .block_on()?;
+        .await?;
 
         writeln!(
             ui.status(),
             "Created and checked out recovery commit {}",
             short_commit_hash(new_commit.id())
         )?;
-        locked_ws.finish(repo.op_id().clone()).block_on()?;
+        locked_ws.finish(repo.op_id().clone()).await?;
         self.user_repo = ReadonlyUserRepo::new(repo);
 
         self.maybe_snapshot_impl(ui)
+            .await
             .map_err(|err| err.into_command_error())
     }
 
@@ -1686,7 +1735,7 @@ to the current parents may contain changes from multiple commits.
 
     /// Resolve a revset to a single revision. Return an error if the revset is
     /// empty or has multiple revisions.
-    pub fn resolve_single_rev(
+    pub async fn resolve_single_rev(
         &self,
         ui: &Ui,
         revision_arg: &RevisionArg,
@@ -1695,11 +1744,12 @@ to the current parents may contain changes from multiple commits.
         revset_util::evaluate_revset_to_single_commit(revision_arg.as_ref(), &expression, || {
             self.commit_summary_template()
         })
+        .await
     }
 
     /// Evaluates revset expressions to set of commit IDs. The
     /// returned set preserves the order of the input expressions.
-    pub fn resolve_revsets_ordered(
+    pub async fn resolve_revsets_ordered(
         &self,
         ui: &Ui,
         revision_args: &[RevisionArg],
@@ -1707,8 +1757,9 @@ to the current parents may contain changes from multiple commits.
         let mut all_commits = IndexSet::new();
         for revision_arg in revision_args {
             let expression = self.parse_revset(ui, revision_arg)?;
-            for commit_id in expression.evaluate_to_commit_ids()? {
-                all_commits.insert(commit_id?);
+            let mut stream = expression.evaluate_to_commit_ids()?;
+            while let Some(commit_id) = stream.try_next().await? {
+                all_commits.insert(commit_id);
             }
         }
         Ok(all_commits)
@@ -1716,12 +1767,12 @@ to the current parents may contain changes from multiple commits.
 
     /// Evaluates revset expressions to non-empty set of commit IDs. The
     /// returned set preserves the order of the input expressions.
-    pub fn resolve_some_revsets(
+    pub async fn resolve_some_revsets(
         &self,
         ui: &Ui,
         revision_args: &[RevisionArg],
     ) -> Result<IndexSet<CommitId>, CommandError> {
-        let all_commits = self.resolve_revsets_ordered(ui, revision_args)?;
+        let all_commits = self.resolve_revsets_ordered(ui, revision_args).await?;
         if all_commits.is_empty() {
             Err(user_error("Empty revision set"))
         } else {
@@ -1887,28 +1938,32 @@ to the current parents may contain changes from multiple commits.
         self.commit_summary_template().format(commit, formatter)
     }
 
-    pub fn check_rewritable<'a>(
+    pub async fn check_rewritable<'a>(
         &self,
         commits: impl IntoIterator<Item = &'a CommitId>,
     ) -> Result<(), CommandError> {
         let commit_ids = commits.into_iter().cloned().collect_vec();
         let to_rewrite_expr = RevsetExpression::commits(commit_ids);
-        self.check_rewritable_expr(&to_rewrite_expr)
+        self.check_rewritable_expr(&to_rewrite_expr).await
     }
 
-    pub fn check_rewritable_expr(
+    pub async fn check_rewritable_expr(
         &self,
         to_rewrite_expr: &Arc<ResolvedRevsetExpression>,
     ) -> Result<(), CommandError> {
         let repo = self.repo().as_ref();
-        let Some(commit_id) = self.env.find_immutable_commit(repo, to_rewrite_expr)? else {
+        let Some(commit_id) = self
+            .env
+            .find_immutable_commit(repo, to_rewrite_expr)
+            .await?
+        else {
             return Ok(());
         };
         let error = if &commit_id == repo.store().root_commit_id() {
             user_error(format!("The root commit {commit_id:.12} is immutable"))
         } else {
             let mut error = user_error(format!("Commit {commit_id:.12} is immutable"));
-            let commit = repo.store().get_commit(&commit_id)?;
+            let commit = repo.store().get_commit_async(&commit_id).await?;
             error.add_formatted_hint_with(|formatter| {
                 write!(formatter, "Could not modify commit: ")?;
                 self.write_commit_summary(formatter, &commit)?;
@@ -1966,7 +2021,7 @@ to the current parents may contain changes from multiple commits.
             .map_err(snapshot_command_error)?;
 
         let Some((repo, wc_commit)) =
-            handle_stale_working_copy(locked_ws.locked_wc(), repo, &workspace_name)?
+            handle_stale_working_copy(locked_ws.locked_wc(), repo, &workspace_name).await?
         else {
             // If the workspace has been deleted, it's unclear what to do, so we just skip
             // committing the working copy.
@@ -1990,8 +2045,11 @@ to the current parents may contain changes from multiple commits.
                 })?
         };
         if new_tree.tree_ids_and_labels() != wc_commit.tree().tree_ids_and_labels() {
-            let mut tx =
-                start_repo_transaction(&self.user_repo.repo, self.env.command.string_args());
+            let mut tx = start_repo_transaction(
+                &self.user_repo.repo,
+                &workspace_name,
+                self.env.command.string_args(),
+            );
             tx.set_is_snapshot(true);
             let mut_repo = tx.repo_mut();
             let commit = mut_repo
@@ -2018,15 +2076,18 @@ to the current parents may contain changes from multiple commits.
             }
 
             #[cfg(feature = "git")]
-            if self.working_copy_shared_with_git {
+            if self.working_copy_shared_with_git && self.env.command.should_commit_transaction() {
                 let old_tree = wc_commit.tree();
                 let new_tree = commit.tree();
                 export_working_copy_changes_to_git(ui, mut_repo, &old_tree, &new_tree)
+                    .await
                     .map_err(snapshot_command_error)?;
             }
 
-            let repo = tx
-                .commit("snapshot working copy")
+            let repo = self
+                .env
+                .command
+                .maybe_commit_transaction(tx, "snapshot working copy")
                 .await
                 .map_err(snapshot_command_error)?;
             self.user_repo = ReadonlyUserRepo::new(repo);
@@ -2061,14 +2122,16 @@ to the current parents may contain changes from multiple commits.
             .map_err(snapshot_command_error)?;
         }
 
-        locked_ws
-            .finish(self.user_repo.repo.op_id().clone())
-            .await
-            .map_err(snapshot_command_error)?;
+        if self.env.command.should_commit_transaction() {
+            locked_ws
+                .finish(self.user_repo.repo.op_id().clone())
+                .await
+                .map_err(snapshot_command_error)?;
+        }
         Ok(stats)
     }
 
-    fn update_working_copy(
+    async fn update_working_copy(
         &mut self,
         ui: &Ui,
         maybe_old_commit: Option<&Commit>,
@@ -2081,7 +2144,8 @@ to the current parents may contain changes from multiple commits.
             maybe_old_commit,
             new_commit,
             self.env.path_converter(),
-        )?;
+        )
+        .await?;
         self.print_updated_working_copy_stats(ui, maybe_old_commit, new_commit, &stats)
     }
 
@@ -2122,7 +2186,11 @@ to the current parents may contain changes from multiple commits.
     }
 
     pub fn start_transaction(&mut self) -> WorkspaceCommandTransaction<'_> {
-        let tx = start_repo_transaction(self.repo(), self.env.command.string_args());
+        let tx = start_repo_transaction(
+            self.repo(),
+            self.workspace_name(),
+            self.env.command.string_args(),
+        );
         let id_prefix_context = mem::take(&mut self.user_repo.id_prefix_context);
         WorkspaceCommandTransaction {
             helper: self,
@@ -2131,14 +2199,14 @@ to the current parents may contain changes from multiple commits.
         }
     }
 
-    fn finish_transaction(
+    async fn finish_transaction(
         &mut self,
         ui: &Ui,
         mut tx: Transaction,
         description: impl Into<String>,
         _git_import_export_lock: &GitImportExportLock,
     ) -> Result<(), CommandError> {
-        let num_rebased = tx.repo_mut().rebase_descendants().block_on()?;
+        let num_rebased = tx.repo_mut().rebase_descendants().await?;
         if num_rebased > 0 {
             writeln!(ui.status(), "Rebased {num_rebased} descendant commits")?;
         }
@@ -2148,7 +2216,7 @@ to the current parents may contain changes from multiple commits.
             // the unresolvable trunk() issue gets addressed differently, it
             // should be okay to propagate the error.
             let wc_expr = RevsetExpression::commit(wc_commit_id.clone());
-            let is_immutable = match self.env.find_immutable_commit(tx.repo(), &wc_expr) {
+            let is_immutable = match self.env.find_immutable_commit(tx.repo(), &wc_expr).await {
                 Ok(commit_id) => commit_id.is_some(),
                 Err(CommandError { error, .. }) => {
                     writeln!(
@@ -2161,10 +2229,8 @@ to the current parents may contain changes from multiple commits.
                 }
             };
             if is_immutable {
-                let wc_commit = tx.repo().store().get_commit(wc_commit_id)?;
-                tx.repo_mut()
-                    .check_out(name.clone(), &wc_commit)
-                    .block_on()?;
+                let wc_commit = tx.repo().store().get_commit_async(wc_commit_id).await?;
+                tx.repo_mut().check_out(name.clone(), &wc_commit).await?;
                 writeln!(
                     ui.warning_default(),
                     "The working-copy commit in workspace '{name}' became immutable, so a new \
@@ -2204,7 +2270,7 @@ to the current parents may contain changes from multiple commits.
             .transpose()?;
 
         #[cfg(feature = "git")]
-        if self.working_copy_shared_with_git {
+        if self.working_copy_shared_with_git && self.env.command.should_commit_transaction() {
             use std::error::Error as _;
             if let Some(wc_commit) = &maybe_new_wc_commit {
                 // Export Git HEAD while holding the git-head lock to prevent races:
@@ -2213,7 +2279,7 @@ to the current parents may contain changes from multiple commits.
                 // This can still fail if HEAD was updated concurrently by another JJ process
                 // (overlapping transaction) or a non-JJ process (e.g., git checkout). In that
                 // case, the actual state will be imported on the next snapshot.
-                match jj_lib::git::reset_head(tx.repo_mut(), wc_commit).block_on() {
+                match jj_lib::git::reset_head(tx.repo_mut(), wc_commit).await {
                     Ok(()) => {}
                     Err(err @ jj_lib::git::GitResetHeadError::UpdateHeadRef(_)) => {
                         writeln!(ui.warning_default(), "{err}")?;
@@ -2226,21 +2292,35 @@ to the current parents may contain changes from multiple commits.
             crate::git_util::print_git_export_stats(ui, &stats)?;
         }
 
-        self.user_repo = ReadonlyUserRepo::new(tx.commit(description).block_on()?);
+        self.user_repo = ReadonlyUserRepo::new(
+            self.env
+                .command
+                .maybe_commit_transaction(tx, description)
+                .await?,
+        );
 
         // Update working copy before reporting repo changes, so that
         // potential errors while reporting changes (broken pipe, etc)
         // don't leave the working copy in a stale state.
         if self.may_update_working_copy {
             if let Some(new_commit) = &maybe_new_wc_commit {
-                self.update_working_copy(ui, maybe_old_wc_commit.as_ref(), new_commit)?;
+                self.update_working_copy(ui, maybe_old_wc_commit.as_ref(), new_commit)
+                    .await?;
             } else {
                 // It seems the workspace was deleted, so we shouldn't try to
                 // update it.
             }
         }
 
-        self.report_repo_changes(ui, &old_repo)?;
+        self.report_repo_changes(ui, &old_repo).await?;
+
+        if !self.env.command.should_commit_transaction() {
+            writeln!(
+                ui.status(),
+                "Operation left uncommitted because --no-integrate-operation was requested: {}",
+                short_operation_hash(self.repo().op_id())
+            )?;
+        }
 
         let settings = self.settings();
         let missing_user_name = settings.user_name().is_empty();
@@ -2276,7 +2356,7 @@ to the current parents may contain changes from multiple commits.
 
     /// Inform the user about important changes to the repo since the previous
     /// operation (when `old_repo` was loaded).
-    fn report_repo_changes(
+    async fn report_repo_changes(
         &self,
         ui: &Ui,
         old_repo: &Arc<ReadonlyRepo>,
@@ -2287,6 +2367,24 @@ to the current parents may contain changes from multiple commits.
         let old_view = old_repo.view();
         let new_repo = self.repo().as_ref();
         let new_view = new_repo.view();
+
+        let workspace_name = self.workspace_name();
+        if old_view.wc_commit_ids().contains_key(workspace_name)
+            && !new_view.wc_commit_ids().contains_key(workspace_name)
+        {
+            writeln!(
+                fmt.labeled("warning").with_heading("Warning: "),
+                "The current workspace '{}' no longer exists after this operation. The working \
+                 copy was left untouched.",
+                workspace_name.as_symbol(),
+            )?;
+            writeln!(
+                fmt.labeled("hint").with_heading("Hint: "),
+                "Restore to an operation that contains the workspace (e.g. `jj undo` or `jj \
+                 redo`).",
+            )?;
+        }
+
         let old_heads = RevsetExpression::commits(old_view.heads().iter().cloned().collect());
         let new_heads = RevsetExpression::commits(new_view.heads().iter().cloned().collect());
         // Filter the revsets by conflicts instead of reading all commits and doing the
@@ -2300,16 +2398,17 @@ to the current parents may contain changes from multiple commits.
         let added_conflicts_expr = old_heads.range(&new_heads).intersection(&conflicts);
 
         let get_commits =
-            |expr: Arc<ResolvedRevsetExpression>| -> Result<Vec<Commit>, CommandError> {
+            async |expr: Arc<ResolvedRevsetExpression>| -> Result<Vec<Commit>, CommandError> {
                 let commits = expr
                     .evaluate(new_repo)?
-                    .iter()
+                    .stream()
                     .commits(new_repo.store())
-                    .try_collect()?;
+                    .try_collect()
+                    .await?;
                 Ok(commits)
             };
-        let removed_conflict_commits = get_commits(removed_conflicts_expr)?;
-        let added_conflict_commits = get_commits(added_conflicts_expr)?;
+        let removed_conflict_commits = get_commits(removed_conflicts_expr).await?;
+        let added_conflict_commits = get_commits(added_conflicts_expr).await?;
 
         fn commits_by_change_id(commits: &[Commit]) -> IndexMap<&ChangeId, Vec<&Commit>> {
             let mut result: IndexMap<&ChangeId, Vec<&Commit>> = IndexMap::new();
@@ -2378,13 +2477,14 @@ to the current parents may contain changes from multiple commits.
                     .iter()
                     .map(|commit| commit.id().clone())
                     .collect(),
-            )?;
+            )
+            .await?;
         }
 
         Ok(())
     }
 
-    pub fn report_repo_conflicts(
+    pub async fn report_repo_conflicts(
         &self,
         fmt: &mut dyn Formatter,
         repo: &ReadonlyRepo,
@@ -2401,9 +2501,10 @@ to the current parents may contain changes from multiple commits.
             .evaluate(repo)?;
 
         let root_conflict_commits: Vec<_> = root_conflicts_revset
-            .iter()
+            .stream()
             .commits(repo.store())
-            .try_collect()?;
+            .try_collect()
+            .await?;
 
         // The common part of these strings is not extracted, to avoid i18n issues.
         let instruction = if only_one_conflicted_commit {
@@ -2484,20 +2585,20 @@ to the current parents may contain changes from multiple commits.
 }
 
 #[cfg(feature = "git")]
-pub fn export_working_copy_changes_to_git(
+pub async fn export_working_copy_changes_to_git(
     ui: &Ui,
     mut_repo: &mut MutableRepo,
     old_tree: &MergedTree,
     new_tree: &MergedTree,
 ) -> Result<(), CommandError> {
     let repo = mut_repo.base_repo().as_ref();
-    jj_lib::git::update_intent_to_add(repo, old_tree, new_tree).block_on()?;
+    jj_lib::git::update_intent_to_add(repo, old_tree, new_tree).await?;
     let stats = jj_lib::git::export_refs(mut_repo)?;
     crate::git_util::print_git_export_stats(ui, &stats)?;
     Ok(())
 }
 #[cfg(not(feature = "git"))]
-pub fn export_working_copy_changes_to_git(
+pub async fn export_working_copy_changes_to_git(
     _ui: &Ui,
     _mut_repo: &mut MutableRepo,
     _old_tree: &MergedTree,
@@ -2599,7 +2700,7 @@ impl WorkspaceCommandTransaction<'_> {
         self.helper.env.parse_template(ui, &language, template_text)
     }
 
-    pub fn finish(self, ui: &Ui, description: impl Into<String>) -> Result<(), CommandError> {
+    pub async fn finish(self, ui: &Ui, description: impl Into<String>) -> Result<(), CommandError> {
         if !self.tx.repo().has_changes() {
             writeln!(ui.status(), "Nothing changed.")?;
             return Ok(());
@@ -2609,6 +2710,7 @@ impl WorkspaceCommandTransaction<'_> {
         let git_import_export_lock = self.helper.lock_git_import_export()?;
         self.helper
             .finish_transaction(ui, self.tx, description, &git_import_export_lock)
+            .await
     }
 
     /// Returns the wrapped [`Transaction`] for circumstances where
@@ -2684,8 +2786,13 @@ jj git init",
     }
 }
 
-pub fn start_repo_transaction(repo: &Arc<ReadonlyRepo>, string_args: &[String]) -> Transaction {
+pub fn start_repo_transaction(
+    repo: &Arc<ReadonlyRepo>,
+    workspace_name: &WorkspaceName,
+    string_args: &[String],
+) -> Transaction {
     let mut tx = repo.start_transaction();
+    tx.set_workspace_name(workspace_name);
     // TODO: Either do better shell-escaping here or store the values in some list
     // type (which we currently don't have).
     let shell_escape = |arg: &String| {
@@ -2710,7 +2817,7 @@ pub fn start_repo_transaction(repo: &Arc<ReadonlyRepo>, string_args: &[String]) 
     };
     let mut quoted_strings = vec!["jj".to_string()];
     quoted_strings.extend(string_args.iter().skip(1).map(shell_escape));
-    tx.set_tag("args".to_string(), quoted_strings.join(" "));
+    tx.set_attribute("args".to_string(), quoted_strings.join(" "));
     tx
 }
 
@@ -2719,7 +2826,7 @@ pub fn start_repo_transaction(repo: &Arc<ReadonlyRepo>, string_args: &[String]) 
 ///
 /// Returns Ok(None) if the workspace doesn't exist in the repo (presumably
 /// because it was deleted).
-fn handle_stale_working_copy(
+async fn handle_stale_working_copy(
     locked_wc: &mut dyn LockedWorkingCopy,
     repo: Arc<ReadonlyRepo>,
     workspace_name: &WorkspaceName,
@@ -2735,12 +2842,12 @@ fn handle_stale_working_copy(
         return Ok(None);
     };
     let old_op_id = locked_wc.old_operation_id().clone();
-    match WorkingCopyFreshness::check_stale(locked_wc, &wc_commit, &repo).block_on() {
+    match WorkingCopyFreshness::check_stale(locked_wc, &wc_commit, &repo).await {
         Ok(WorkingCopyFreshness::Fresh) => Ok(Some((repo, wc_commit))),
         Ok(WorkingCopyFreshness::Updated(wc_operation)) => {
             let repo = repo
                 .reload_at(&wc_operation)
-                .block_on()
+                .await
                 .map_err(snapshot_command_error)?;
             if let Some(wc_commit) = get_wc_commit(&repo)? {
                 Ok(Some((repo, wc_commit)))
@@ -2789,8 +2896,8 @@ See https://docs.jj-vcs.dev/latest/working-copy/#stale-working-copy \
     }
 }
 
-fn update_stale_working_copy(
-    mut locked_ws: LockedWorkspace,
+async fn update_stale_working_copy(
+    mut locked_ws: LockedWorkspace<'_>,
     op_id: OperationId,
     stale_commit: &Commit,
     new_commit: &Commit,
@@ -2806,9 +2913,9 @@ fn update_stale_working_copy(
     let stats = locked_ws
         .locked_wc()
         .check_out(new_commit)
-        .block_on()
+        .await
         .map_err(|err| CommandError::from_checkout_error(err, new_commit.id(), path_converter))?;
-    locked_ws.finish(op_id).block_on()?;
+    locked_ws.finish(op_id).await?;
 
     Ok(stats)
 }
@@ -2976,12 +3083,13 @@ fn print_unconverted_files(
     if !unconverted_paths.is_empty() {
         writeln!(
             ui.warning_default(),
-            "Failed to use filter to convert some files:"
+            "{} file(s) were not converted by Git filters during snapshot/update.",
+            unconverted_paths.len()
         )?;
-        for path in unconverted_paths.keys() {
+        for (path, reason) in unconverted_paths {
             writeln!(
-                ui.warning_default(),
-                " {}",
+                ui.hint_default(),
+                "  {}: {reason}",
                 path_converter.format_file_path(path)
             )?;
         }
@@ -3115,7 +3223,7 @@ pub fn print_unmatched_explicit_paths<'a>(
     Ok(())
 }
 
-pub fn update_working_copy(
+pub async fn update_working_copy(
     repo: &Arc<ReadonlyRepo>,
     workspace: &mut Workspace,
     old_commit: Option<&Commit>,
@@ -3127,7 +3235,7 @@ pub fn update_working_copy(
     // warning for most commands (but be an error for the checkout command)
     let stats = workspace
         .check_out(repo.op_id().clone(), old_tree.as_ref(), new_commit)
-        .block_on()
+        .await
         .map_err(|err| CommandError::from_checkout_error(err, new_commit.id(), path_converter))?;
     Ok(stats)
 }
@@ -3154,6 +3262,18 @@ pub fn has_tracked_remote_bookmarks(repo: &dyn Repo, bookmark: &RefName) -> bool
     };
     repo.view()
         .remote_bookmarks_matching(&StringMatcher::exact(bookmark), &remote_matcher)
+        .any(|(_, remote_ref)| remote_ref.is_tracked())
+}
+
+/// Whether or not the `tag` has any tracked remotes (i.e. is a tracking local
+/// tag.)
+pub fn has_tracked_remote_tags(repo: &dyn Repo, tag: &RefName) -> bool {
+    let remote_matcher = match default_ignored_remote_name(repo.store()) {
+        Some(remote) => StringExpression::exact(remote).negated().to_matcher(),
+        None => StringMatcher::all(),
+    };
+    repo.view()
+        .remote_tags_matching(&StringMatcher::exact(tag), &remote_matcher)
         .any(|(_, remote_ref)| remote_ref.is_tracked())
 }
 
@@ -3354,7 +3474,7 @@ impl fmt::Display for RemoteBookmarkNamePattern {
 ///
 /// The `destination` argument is mutually exclusive to the `insert_after` and
 /// `insert_before` arguments.
-pub fn compute_commit_location(
+pub async fn compute_commit_location(
     ui: &Ui,
     workspace_command: &WorkspaceCommandHelper,
     destination: Option<&[RevisionArg]>,
@@ -3363,11 +3483,12 @@ pub fn compute_commit_location(
     commit_type: &str,
 ) -> Result<(Vec<CommitId>, Vec<CommitId>), CommandError> {
     let resolve_revisions =
-        |revisions: Option<&[RevisionArg]>| -> Result<Option<Vec<CommitId>>, CommandError> {
+        async |revisions: Option<&[RevisionArg]>| -> Result<Option<Vec<CommitId>>, CommandError> {
             if let Some(revisions) = revisions {
                 Ok(Some(
                     workspace_command
-                        .resolve_revsets_ordered(ui, revisions)?
+                        .resolve_revsets_ordered(ui, revisions)
+                        .await?
                         .into_iter()
                         .collect_vec(),
                 ))
@@ -3375,9 +3496,9 @@ pub fn compute_commit_location(
                 Ok(None)
             }
         };
-    let destination_commit_ids = resolve_revisions(destination)?;
-    let after_commit_ids = resolve_revisions(insert_after)?;
-    let before_commit_ids = resolve_revisions(insert_before)?;
+    let destination_commit_ids = resolve_revisions(destination).await?;
+    let after_commit_ids = resolve_revisions(insert_after).await?;
+    let before_commit_ids = resolve_revisions(insert_before).await?;
 
     let (new_parent_ids, new_child_ids) =
         match (destination_commit_ids, after_commit_ids, before_commit_ids) {
@@ -3389,8 +3510,9 @@ pub fn compute_commit_location(
                 let new_child_ids: Vec<_> = RevsetExpression::commits(after_commit_ids.clone())
                     .children()
                     .evaluate(workspace_command.repo().as_ref())?
-                    .iter()
-                    .try_collect()?;
+                    .stream()
+                    .try_collect()
+                    .await?;
 
                 (after_commit_ids, new_child_ids)
             }
@@ -3419,13 +3541,16 @@ pub fn compute_commit_location(
         };
 
     if !new_child_ids.is_empty() {
-        workspace_command.check_rewritable(new_child_ids.iter())?;
+        workspace_command
+            .check_rewritable(new_child_ids.iter())
+            .await?;
         ensure_no_commit_loop(
             workspace_command.repo().as_ref(),
             &RevsetExpression::commits(new_child_ids.clone()),
             &RevsetExpression::commits(new_parent_ids.clone()),
             commit_type,
-        )?;
+        )
+        .await?;
     }
 
     if new_parent_ids.is_empty() {
@@ -3437,7 +3562,7 @@ pub fn compute_commit_location(
 
 /// Ensure that there is no possible cycle between the potential children and
 /// parents of the given commits.
-fn ensure_no_commit_loop(
+async fn ensure_no_commit_loop(
     repo: &ReadonlyRepo,
     children_expression: &Arc<ResolvedRevsetExpression>,
     parents_expression: &Arc<ResolvedRevsetExpression>,
@@ -3446,10 +3571,10 @@ fn ensure_no_commit_loop(
     if let Some(commit_id) = children_expression
         .dag_range_to(parents_expression)
         .evaluate(repo)?
-        .iter()
-        .next()
+        .stream()
+        .try_next()
+        .await?
     {
-        let commit_id = commit_id?;
         return Err(user_error(format!(
             "Refusing to create a loop: commit {} would be both an ancestor and a descendant of \
              the {commit_type}",
@@ -3496,6 +3621,23 @@ pub struct GlobalArgs {
     /// implies `--ignore-working-copy`.
     #[arg(long, global = true)]
     pub ignore_working_copy: bool,
+
+    /// Run the command as usual but don't integrate any operations
+    ///
+    /// When this option is given, the operations will still be created as usual
+    /// but they will not be integrated to the operation log. The working copy
+    /// will also not be updated.
+    ///
+    /// The command will print the resulting operation ID. You can pass that to
+    /// e.g. `jj --at-op` to inspect the resulting repo state, or you can pass
+    /// it to `jj op restore` to restore the repo to that state. You can also
+    /// pass the ID to `jj op integrate` to integrate the operation.
+    ///
+    /// Note that this does *not* prevent side effects outside the repo. For
+    /// example, `jj git push --no-integrate-operation` will still perform the
+    /// push.
+    #[arg(long, global = true)]
+    pub no_integrate_operation: bool,
 
     /// Allow rewriting immutable commits
     ///

@@ -27,6 +27,7 @@ use jj_lib::op_store::OperationId;
 use jj_lib::operation::Operation;
 use jj_lib::repo::RepoLoader;
 use jj_lib::settings::UserSettings;
+use pollster::FutureExt as _;
 
 use crate::template_builder;
 use crate::template_builder::BuildContext;
@@ -39,6 +40,7 @@ use crate::template_builder::merge_fn_map;
 use crate::template_parser;
 use crate::template_parser::FunctionCallNode;
 use crate::template_parser::TemplateDiagnostics;
+use crate::template_parser::TemplateParseError;
 use crate::template_parser::TemplateParseResult;
 use crate::templater::BoxedAnyProperty;
 use crate::templater::BoxedSerializeProperty;
@@ -521,13 +523,33 @@ where
         },
     );
     map.insert(
-        "tags",
+        "attributes",
         |_language, _diagnostics, _build_ctx, self_property, function| {
             function.expect_no_arguments()?;
             let out_property = self_property.map(|op| {
                 // TODO: introduce map type
                 op.metadata()
-                    .tags
+                    .attributes
+                    .iter()
+                    .map(|(key, value)| format!("{key}: {value}"))
+                    .join("\n")
+            });
+            Ok(out_property.into_dyn_wrapped())
+        },
+    );
+    // TODO: Remove in jj 0.47+
+    map.insert(
+        "tags",
+        |_language, diagnostics, _build_ctx, self_property, function| {
+            diagnostics.add_warning(TemplateParseError::expression(
+                "operation.tags() is deprecated; use .attributes() instead",
+                function.name_span,
+            ));
+            function.expect_no_arguments()?;
+            let out_property = self_property.map(|op| {
+                // TODO: introduce map type
+                op.metadata()
+                    .attributes
                     .iter()
                     .map(|(key, value)| format!("{key}: {value}"))
                     .join("\n")
@@ -540,6 +562,20 @@ where
         |_language, _diagnostics, _build_ctx, self_property, function| {
             function.expect_no_arguments()?;
             let out_property = self_property.map(|op| op.metadata().is_snapshot);
+            Ok(out_property.into_dyn_wrapped())
+        },
+    );
+    map.insert(
+        "workspace_name",
+        |_language, _diagnostics, _build_ctx, self_property, function| {
+            function.expect_no_arguments()?;
+            let out_property = self_property.map(|op| {
+                op.metadata()
+                    .workspace_name
+                    .as_ref()
+                    .map(|name| format!("{}@", name.as_symbol()))
+                    .unwrap_or_default()
+            });
             Ok(out_property.into_dyn_wrapped())
         },
     );
@@ -577,7 +613,7 @@ where
         |_language, _diagnostics, _build_ctx, self_property, function| {
             function.expect_no_arguments()?;
             let out_property = self_property.and_then(|op| {
-                let ops: Vec<_> = op.parents().try_collect()?;
+                let ops = op.parents().block_on()?;
                 Ok(ops)
             });
             Ok(out_property.into_dyn_wrapped())

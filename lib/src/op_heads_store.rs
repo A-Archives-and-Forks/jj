@@ -24,7 +24,7 @@ use futures::future::try_join_all;
 use itertools::Itertools as _;
 use thiserror::Error;
 
-use crate::dag_walk;
+use crate::dag_walk_async;
 use crate::op_store::OpStore;
 use crate::op_store::OpStoreError;
 use crate::op_store::OperationId;
@@ -135,11 +135,12 @@ where
     // Remove ancestors so we don't create merge operation with an operation and its
     // ancestor
     let op_head_ids_before: HashSet<_> = op_heads.iter().map(|op| op.id().clone()).collect();
-    let filtered_op_heads = dag_walk::heads_ok(
-        op_heads.into_iter().map(Ok),
+    let filtered_op_heads = dag_walk_async::heads(
+        op_heads,
         |op: &Operation| op.id().clone(),
-        |op: &Operation| op.parents().collect_vec(),
-    )?;
+        async |op: &Operation| op.parents().await,
+    )
+    .await?;
     let op_head_ids_after: HashSet<_> =
         filtered_op_heads.iter().map(|op| op.id().clone()).collect();
     let ancestor_op_heads = op_head_ids_before

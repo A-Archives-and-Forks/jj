@@ -12,7 +12,49 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Breaking changes
 
+* `jj git push --all`/`--tracked`/`-r REVSETS` no longer fails when revisions to
+  push are private or have conflicts. Bookmarks which aren't eligible to push
+  will be skipped.
+
 ### Deprecations
+
+* In the templating language, the `Operation` type's `.tags()` function has been
+  deprecated in favor of `.attributes()`.
+
+### New features
+
+* A new global flag `--no-integrate-operation` lets you run a command without
+  impacting the repo state or the working copy.
+
+* A new config option `diff.git.show-path-prefix` can be used to suppress the
+  `a/` and `b/` path prefixes in the `diff --git` output.
+
+* `jj fix` now supports line range-limited formatting via the `fix.tools.<name>.line-range-arg`
+  and `run-tool-if-zero-line-ranges` configs. This allows running tools only on modified
+  lines and fine-grained control over when the tool is run. If you have set the `line-range-arg`
+  config, use `--all-lines` to match the previous behavior of formatting the entire file.
+
+### Fixed bugs
+
+* Improving consistency with `git` handling of `.gitignore`, including `/`
+  after entries and `\r\r\n` for MacOS files.
+
+* `jj status` filters untracked paths by fileset
+  [#9287](https://github.com/jj-vcs/jj/issues/9287)
+
+## [0.40.0] - 2026-04-01
+
+### Release highlights
+
+None
+
+### Breaking changes
+
+None
+
+### Deprecations
+
+None
 
 ### New features
 
@@ -23,8 +65,17 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   now optional. If not given, `substr()` returns from `start` to the end of the
   string.
 
+* `WorkspaceRef` templates now provide a `.root()` method to show the absolute
+  path to each workspace root.
+
 * The `jj arrange` TUI now includes immediate parents and children. They are not
   selectable and are dimmed by default.
+
+* `jj arrange` uses the default log template (`builtin_log_compact`) instead of
+   the shorter commit summary style.
+
+* In the `jj arrange` TUI, the "swap up/down" actions now move along graph edges
+  even if the commit rows are not adjacent.
 
 * [Diff colors](docs/config.md#diff-colors-and-styles) can now be configured
   differently for each format.
@@ -36,7 +87,54 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   interpolates `$path` with the repo-relative file path. This enables Git LFS
   and other gitattributes filter integrations in colocated repositories.
   ([Issue #80](https://github.com/jj-vcs/jj/issues/80))
+
+* `jj op log` now includes the name of the workspace the operation was created
+  from.
+
+* The `config()` template function now accepts a `Stringify` expression instead
+  of `LiteralString`. This allows looking up configuration values dynamically.
+
+* `jj op show`, `jj op diff`, `jj op log -p` now only show "interesting"
+  revisions by default (defined by `revsets.op-diff-changes-in`). A new flag,
+  `--show-changes-in`, can be used to override this. [#6083](https://github.com/jj-vcs/jj/issues/6083)
 ### Fixed bugs
+
+* `.gitignore` with UTF-8 BOM can now be parsed correctly.
+
+* Fix incompatibility with gpgsm 2.5.x.
+
+### Contributors
+
+Thanks to the people who made this release happen!
+
+* Aaron Sutton (@aaronjsutton)
+* Adam Sandberg Eriksson (@adamse)
+* Anton Älgmyr (@algmyr)
+* Austin Seipp (@thoughtpolice)
+* Benjamin Tan (@bnjmnt4n)
+* Ben Warren (@warrenbhw)
+* Bryant Chandler (@brychanrobot)
+* David Higgs (@higgsd)
+* Filip Weiss (@fiws)
+* Gabriel Goller (@kaffarell)
+* Gaëtan Lehmann (@glehmann)
+* Ilya Grigoriev (@ilyagr)
+* Jeff Turner (@jefft)
+* Joseph Lou (@josephlou5)
+* Josh Steadmon (@steadmon)
+* KITAGAWA Yasutaka (@kit494way)
+* Liam (@terror)
+* Li-Wen Hsu (@lwhsu)
+* Martin von Zweigbergk (@martinvonz)
+* Philip Metzger (@PhilipMetzger)
+* Poliorcetics (@poliorcetics)
+* Remo Senekowitsch (@senekor)
+* Rob Pilling (@bobrippling)
+* Scott Taylor (@scott2000)
+* Shnatu
+* Stephen Prater (@stephenprater)
+* Yuya Nishihara (@yuja)
+* Zeyi Fan (@fanzeyi)
 
 ## [0.39.0] - 2026-03-04
 
@@ -640,7 +738,7 @@ Thanks to the people who made this release happen!
 * `RepoPath` template type now has a `absolute() -> String` method that returns
   the absolute path as a string.
 
-* Added `format_path(path)` template that controls how file paths are printed
+* Added `format_path(path)` template alias that controls how file paths are printed
   with `jj file list`.
 
 * New built-in revset aliases `visible()` and `hidden()`.
@@ -812,7 +910,7 @@ Thanks to the people who made this release happen!
 
 * `jj bisect run` accepts the command and arguments to pass to the command
   directly as positional arguments, such as
-  `jj bisect --range=..main -- cargo check --all-targets`.
+  `jj bisect run --range=..main -- cargo check --all-targets`.
 
 * Divergent changes are no longer marked red in immutable revisions. Since the
   revision is immutable, the user shouldn't take any action, so the red color
@@ -4898,7 +4996,8 @@ No changes, only trying to get the automated build to work.
 
 Last release before this changelog started.
 
-[unreleased]: https://github.com/jj-vcs/jj/compare/v0.39.0...HEAD
+[unreleased]: https://github.com/jj-vcs/jj/compare/v0.40.0...HEAD
+[0.40.0]: https://github.com/jj-vcs/jj/compare/v0.39.0...v0.40.0
 [0.39.0]: https://github.com/jj-vcs/jj/compare/v0.38.0...v0.39.0
 [0.38.0]: https://github.com/jj-vcs/jj/compare/v0.37.0...v0.38.0
 [0.37.0]: https://github.com/jj-vcs/jj/compare/v0.36.0...v0.37.0

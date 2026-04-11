@@ -51,6 +51,7 @@ use crate::git_subprocess::GitSubprocessContext;
 use crate::git_subprocess::GitSubprocessError;
 use crate::index::IndexError;
 use crate::matchers::EverythingMatcher;
+use crate::merge::Diff;
 use crate::merged_tree::MergedTree;
 use crate::merged_tree::TreeDiffEntry;
 use crate::object_id::ObjectId as _;
@@ -66,7 +67,6 @@ use crate::ref_name::RemoteName;
 use crate::ref_name::RemoteNameBuf;
 use crate::ref_name::RemoteRefSymbol;
 use crate::ref_name::RemoteRefSymbolBuf;
-use crate::refs::BookmarkPushUpdate;
 use crate::repo::MutableRepo;
 use crate::repo::Repo;
 use crate::repo_path::RepoPath;
@@ -158,6 +158,16 @@ fn validate_remote_name(name: &RemoteName) -> Result<(), GitRemoteNameError> {
     } else {
         Ok(())
     }
+}
+
+/// Converts [`CommitId`] of valid length to [`gix::oid`].
+fn oid_from_commit_id(id: &CommitId) -> &gix::oid {
+    gix::oid::from_bytes_unchecked(id.as_bytes())
+}
+
+/// Converts [`CommitId`] of valid length to [`gix::ObjectId`].
+fn owned_oid_from_commit_id(id: &CommitId) -> gix::ObjectId {
+    gix::ObjectId::from_bytes_or_panic(id.as_bytes())
 }
 
 /// Type of Git ref to be imported or exported.
@@ -283,13 +293,13 @@ impl NegativeRefSpec {
 /// remote it's being pushed to
 pub(crate) struct RefToPush<'a> {
     pub(crate) refspec: &'a RefSpec,
-    pub(crate) expected_location: Option<&'a CommitId>,
+    pub(crate) expected_location: Option<&'a gix::oid>,
 }
 
 impl<'a> RefToPush<'a> {
     fn new(
         refspec: &'a RefSpec,
-        expected_locations: &'a HashMap<&GitRefName, Option<&CommitId>>,
+        expected_locations: &'a HashMap<&GitRefName, Option<&gix::oid>>,
     ) -> Self {
         let expected_location = *expected_locations
             .get(GitRefName::new(&refspec.destination))
@@ -384,12 +394,15 @@ fn to_git_ref_name(kind: GitRefKind, symbol: RemoteRefSymbol<'_>) -> Option<GitR
     }
 }
 
-fn to_remote_tag_ref_name(symbol: RemoteRefSymbol<'_>) -> Option<GitRefNameBuf> {
+fn to_git_or_remote_tag_ref_name(symbol: RemoteRefSymbol<'_>) -> GitRefNameBuf {
     let RemoteRefSymbol { name, remote } = symbol;
     let name = name.as_str();
     let remote = remote.as_str();
-    (remote != REMOTE_NAME_FOR_LOCAL_GIT_REPO)
-        .then(|| format!("{REMOTE_TAG_REF_NAMESPACE}{remote}/{name}").into())
+    if remote == REMOTE_NAME_FOR_LOCAL_GIT_REPO {
+        format!("refs/tags/{name}").into()
+    } else {
+        format!("{REMOTE_TAG_REF_NAMESPACE}{remote}/{name}").into()
+    }
 }
 
 #[derive(Debug, Error)]
@@ -869,9 +882,7 @@ fn collect_changed_refs_to_import(
             continue;
         }
         let old_git_target = known_git_refs.get(full_name).copied().flatten();
-        let old_git_oid = old_git_target
-            .as_normal()
-            .map(|id| gix::oid::from_bytes_unchecked(id.as_bytes()));
+        let old_git_oid = old_git_target.as_normal().map(oid_from_commit_id);
         let Some(oid) = resolve_git_ref_to_commit_id(&git_ref, old_git_oid) else {
             // Skip (or remove existing) invalid refs.
             continue;
@@ -922,10 +933,7 @@ fn collect_changed_remote_tags_to_import(
             .get(&symbol)
             .copied()
             .unwrap_or_else(|| RemoteRef::absent_ref());
-        let old_git_oid = old_remote_ref
-            .target
-            .as_normal()
-            .map(|id| gix::oid::from_bytes_unchecked(id.as_bytes()));
+        let old_git_oid = old_remote_ref.target.as_normal().map(oid_from_commit_id);
         let Some(oid) = resolve_git_ref_to_commit_id(&git_ref, old_git_oid) else {
             // Skip (or remove existing) invalid refs.
             continue;
@@ -1246,7 +1254,14 @@ fn export_refs_to_git(
             GitRefKind::Bookmark => None,
             // Copy existing tag ref, which may point to annotated tag object.
             GitRefKind::Tag => {
-                find_git_tag_oid_to_copy(mut_repo.view(), git_repo, &symbol.name, &new_commit_oid)
+                let remote_matcher = StringMatcher::all();
+                find_git_tag_oid_to_copy(
+                    mut_repo.view(),
+                    git_repo,
+                    &symbol.name,
+                    &remote_matcher,
+                    &new_commit_oid,
+                )
             }
         };
         if let Err(reason) = update_git_ref(
@@ -1398,7 +1413,7 @@ fn collect_changed_refs_to_export(
             continue;
         }
         let old_oid = if let Some(id) = old_target.as_normal() {
-            Some(gix::ObjectId::from_bytes_or_panic(id.as_bytes()))
+            Some(owned_oid_from_commit_id(id))
         } else if old_target.has_conflict() {
             // The old git ref should only be a conflict if there were concurrent import
             // operations while the value changed. Don't overwrite these values.
@@ -1409,7 +1424,7 @@ fn collect_changed_refs_to_export(
             None
         };
         if let Some(id) = new_target.as_normal() {
-            let new_oid = gix::ObjectId::from_bytes_or_panic(id.as_bytes());
+            let new_oid = owned_oid_from_commit_id(id);
             to_update.push((symbol.to_owned(), (old_oid, new_oid)));
         } else if new_target.has_conflict() {
             // Skip conflicts and leave the old value in git_refs
@@ -1437,17 +1452,18 @@ fn find_git_tag_oid_to_copy(
     view: &View,
     git_repo: &gix::Repository,
     name: &RefName,
+    remote_matcher: &StringMatcher,
     commit_oid: &gix::oid,
 ) -> Option<gix::ObjectId> {
     // Filter candidates by tag name and known commit id first
-    view.remote_tags_matching(&StringMatcher::exact(name), &StringMatcher::all())
+    view.remote_tags_matching(&StringMatcher::exact(name), remote_matcher)
         .filter(|(_, remote_ref)| {
             let maybe_id = remote_ref.tracked_target().as_normal();
             maybe_id.is_some_and(|id| id.as_bytes() == commit_oid.as_bytes())
         })
         // Query existing Git ref and tag object
         .filter_map(|(symbol, _)| {
-            let git_ref_name = to_remote_tag_ref_name(symbol)?;
+            let git_ref_name = to_git_or_remote_tag_ref_name(symbol);
             git_repo.find_reference(git_ref_name.as_str()).ok()
         })
         // This usually holds because remote tags are managed by jj, but jj's
@@ -1648,7 +1664,7 @@ pub async fn reset_head(
             // symbolic ref as such.
             let actual_head = git_repo.head().map_err(GitResetHeadError::from_git)?;
             if actual_head.is_detached() {
-                let id = gix::ObjectId::from_bytes_or_panic(id.as_bytes());
+                let id = owned_oid_from_commit_id(id);
                 gix::refs::transaction::PreviousValue::MustExistAndMatch(id.into())
             } else {
                 // Just overwrite symbolic ref, which is unusual. Alternatively,
@@ -1659,9 +1675,7 @@ pub async fn reset_head(
             // Just overwrite if unborn (or conflict), which is also unusual.
             gix::refs::transaction::PreviousValue::MustExist
         };
-        let new_oid = new_head_target
-            .as_normal()
-            .map(|id| gix::ObjectId::from_bytes_or_panic(id.as_bytes()));
+        let new_oid = new_head_target.as_normal().map(owned_oid_from_commit_id);
         update_git_head(&git_repo, expected_ref, new_oid)
             .map_err(|err| GitResetHeadError::UpdateHeadRef(err.into()))?;
         mut_repo.set_git_head_target(new_head_target);
@@ -2098,11 +2112,15 @@ fn git_config_branch_section_ids_by_remote(
             {
                 return None;
             }
+            // https://github.com/jj-vcs/jj/issues/6984#issuecomment-3073761797
+            let is_supported_key = |name: &gix::config::parse::section::ValueName| -> bool {
+                name.eq_ignore_ascii_case(b"remote")
+                    || name.eq_ignore_ascii_case(b"merge")
+                    || name.eq_ignore_ascii_case(b"rebase")
+            };
             if remote_values.len() > 1
                 || push_remote_values.len() > 1
-                || section.value_names().any(|name| {
-                    !name.eq_ignore_ascii_case(b"remote") && !name.eq_ignore_ascii_case(b"merge")
-                })
+                || !section.value_names().all(is_supported_key)
             {
                 return Some(Err(GitRemoteManagementError::NonstandardConfiguration(
                     remote_name.to_owned(),
@@ -3047,19 +3065,21 @@ pub enum GitPushError {
     UnexpectedBackend(#[from] UnexpectedGitBackendError),
 }
 
-#[derive(Clone, Debug)]
-pub struct GitBranchPushTargets {
-    pub branch_updates: Vec<(RefNameBuf, BookmarkPushUpdate)>,
+#[derive(Clone, Debug, Default)]
+pub struct GitPushRefTargets {
+    /// Bookmark or branch `(name, [expected_target, new_target])`s to push.
+    pub bookmarks: Vec<(RefNameBuf, Diff<Option<CommitId>>)>,
+    /// Tag `(name, [expected_target, new_target])`s to push.
+    pub tags: Vec<(RefNameBuf, Diff<Option<CommitId>>)>,
 }
 
 pub struct GitRefUpdate {
     pub qualified_name: GitRefNameBuf,
-    /// Expected position on the remote or None if we expect the ref to not
-    /// exist on the remote
+    /// Expected position on the remote and new position to push.
     ///
-    /// This is sourced from the local remote-tracking branch.
-    pub expected_current_target: Option<CommitId>,
-    pub new_target: Option<CommitId>,
+    /// The expected position is sourced from the local remote-tracking branch.
+    /// This should be `None` if we expect the ref to not exist on the remote.
+    pub targets: Diff<Option<gix::ObjectId>>,
 }
 
 /// Miscellaneous options for Git push command.
@@ -3071,26 +3091,46 @@ pub struct GitPushOptions {
     pub remote_push_options: Vec<String>,
 }
 
-/// Pushes the specified branches and updates the repo view accordingly.
-pub fn push_branches(
+/// Pushes the specified refs and updates the repo view accordingly.
+pub fn push_refs(
     mut_repo: &mut MutableRepo,
     subprocess_options: GitSubprocessOptions,
     remote: &RemoteName,
-    targets: &GitBranchPushTargets,
+    targets: &GitPushRefTargets,
     callback: &mut dyn GitSubprocessCallback,
     options: &GitPushOptions,
 ) -> Result<GitPushStats, GitPushError> {
     validate_remote_name(remote)?;
 
-    let ref_updates = targets
-        .branch_updates
-        .iter()
-        .map(|(name, update)| GitRefUpdate {
+    let git_repo = get_git_repo(mut_repo.store())?;
+    let to_tag_target = |name: &RefName, remote: &RemoteName, id: &CommitId| {
+        let remote_matcher = StringMatcher::exact(remote);
+        let oid = owned_oid_from_commit_id(id);
+        find_git_tag_oid_to_copy(mut_repo.view(), &git_repo, name, &remote_matcher, &oid)
+            .unwrap_or(oid)
+    };
+    let ref_updates = itertools::chain(
+        targets.bookmarks.iter().map(|(name, update)| GitRefUpdate {
             qualified_name: format!("refs/heads/{name}", name = name.as_str()).into(),
-            expected_current_target: update.old_target.clone(),
-            new_target: update.new_target.clone(),
-        })
-        .collect_vec();
+            targets: update
+                .as_ref()
+                .map(|id| id.as_ref().map(owned_oid_from_commit_id)),
+        }),
+        targets.tags.iter().map(|(name, update)| GitRefUpdate {
+            qualified_name: format!("refs/tags/{name}", name = name.as_str()).into(),
+            targets: Diff {
+                before: update
+                    .before
+                    .as_ref()
+                    .map(|id| to_tag_target(name, remote, id)),
+                after: update
+                    .after
+                    .as_ref()
+                    .map(|id| to_tag_target(name, REMOTE_NAME_FOR_LOCAL_GIT_REPO, id)),
+            },
+        }),
+    )
+    .collect_vec();
 
     let push_stats = push_updates(
         mut_repo,
@@ -3103,20 +3143,33 @@ pub fn push_branches(
     tracing::debug!(?push_stats);
 
     let pushed: HashSet<&GitRefName> = push_stats.pushed.iter().map(AsRef::as_ref).collect();
-    let pushed_branch_updates = || {
-        iter::zip(&targets.branch_updates, &ref_updates)
+    let pushed_bookmark_updates = || {
+        iter::zip(&targets.bookmarks, &ref_updates[..targets.bookmarks.len()])
             .filter(|(_, ref_update)| pushed.contains(&*ref_update.qualified_name))
-            .map(|((name, update), _)| (name.as_ref(), update))
+            .map(|((name, update), _)| (&**name, update))
+    };
+    let pushed_tag_updates = || {
+        iter::zip(&targets.tags, &ref_updates[targets.bookmarks.len()..])
+            .filter(|(_, ref_update)| pushed.contains(&*ref_update.qualified_name))
+            .map(|((name, update), ref_update)| (&**name, update, ref_update))
     };
 
     // The remote refs in Git should usually be updated by `git push`. In that
     // case, this only updates our record about the last exported state.
     let unexported_bookmarks = {
-        let git_repo =
-            get_git_repo(mut_repo.store()).expect("backend type should have been tested");
-        let refs = build_pushed_bookmarks_to_export(remote, pushed_branch_updates());
+        let refs = build_pushed_bookmarks_to_export(remote, pushed_bookmark_updates());
         export_refs_to_git(mut_repo, &git_repo, GitRefKind::Bookmark, refs)
     };
+    // Update remote tags so we can look up annotated tag oid without fetching.
+    // Since remote tags should never be imported without fetching from the
+    // remote, update failure isn't a hard error.
+    for (name, _, ref_update) in pushed_tag_updates() {
+        let symbol = name.to_remote_symbol(remote);
+        let edit = to_remote_tag_ref_update(symbol, ref_update.targets.after);
+        if let Err(err) = git_repo.edit_reference(edit) {
+            tracing::warn!(?symbol, ?err, "failed to update remote tag ref");
+        }
+    }
 
     debug_assert!(unexported_bookmarks.is_sorted_by_key(|(symbol, _)| symbol));
     let is_exported_bookmark = |name: &RefName| {
@@ -3124,12 +3177,19 @@ pub fn push_branches(
             .binary_search_by_key(&name, |(symbol, _)| &symbol.name)
             .is_err()
     };
-    for (name, update) in pushed_branch_updates().filter(|(name, _)| is_exported_bookmark(name)) {
+    for (name, update) in pushed_bookmark_updates().filter(|(name, _)| is_exported_bookmark(name)) {
         let new_remote_ref = RemoteRef {
-            target: RefTarget::resolved(update.new_target.clone()),
+            target: RefTarget::resolved(update.after.clone()),
             state: RemoteRefState::Tracked,
         };
         mut_repo.set_remote_bookmark(name.to_remote_symbol(remote), new_remote_ref);
+    }
+    for (name, update, _) in pushed_tag_updates() {
+        let new_remote_ref = RemoteRef {
+            target: RefTarget::resolved(update.after.clone()),
+            state: RemoteRefState::Tracked,
+        };
+        mut_repo.set_remote_tag(name.to_remote_symbol(remote), new_remote_ref);
     }
 
     // TODO: Maybe we can add new stats type which stores RemoteRefSymbol in
@@ -3159,13 +3219,16 @@ pub fn push_updates(
     for update in updates {
         qualified_remote_refs_expected_locations.insert(
             update.qualified_name.as_ref(),
-            update.expected_current_target.as_ref(),
+            update.targets.before.as_deref(),
         );
-        if let Some(new_target) = &update.new_target {
+        if let Some(new_target) = &update.targets.after {
             // We always force-push. We use the push_negotiation callback in
             // `push_refs` to check that the refs did not unexpectedly move on
             // the remote.
-            refspecs.push(RefSpec::forced(new_target.hex(), &update.qualified_name));
+            refspecs.push(RefSpec::forced(
+                new_target.to_string(),
+                &update.qualified_name,
+            ));
         } else {
             // Prefixing this with `+` to force-push or not should make no
             // difference. The push negotiation happens regardless, and wouldn't
@@ -3198,20 +3261,20 @@ pub fn push_updates(
 /// Builds diff of remote bookmarks corresponding to the given `pushed_updates`.
 fn build_pushed_bookmarks_to_export<'a>(
     remote: &RemoteName,
-    pushed_updates: impl IntoIterator<Item = (&'a RefName, &'a BookmarkPushUpdate)>,
+    pushed_updates: impl IntoIterator<Item = (&'a RefName, &'a Diff<Option<CommitId>>)>,
 ) -> RefsToExport {
     let mut to_update = Vec::new();
     let mut to_delete = Vec::new();
     for (name, update) in pushed_updates {
         let symbol = name.to_remote_symbol(remote);
-        match (update.old_target.as_ref(), update.new_target.as_ref()) {
+        match (update.before.as_ref(), update.after.as_ref()) {
             (old, Some(new)) => {
-                let old_oid = old.map(|id| gix::ObjectId::from_bytes_or_panic(id.as_bytes()));
-                let new_oid = gix::ObjectId::from_bytes_or_panic(new.as_bytes());
+                let old_oid = old.map(owned_oid_from_commit_id);
+                let new_oid = owned_oid_from_commit_id(new);
                 to_update.push((symbol.to_owned(), (old_oid, new_oid)));
             }
             (Some(old), None) => {
-                let old_oid = gix::ObjectId::from_bytes_or_panic(old.as_bytes());
+                let old_oid = owned_oid_from_commit_id(old);
                 to_delete.push((symbol.to_owned(), old_oid));
             }
             (None, None) => panic!("old/new targets should differ"),
@@ -3222,6 +3285,37 @@ fn build_pushed_bookmarks_to_export<'a>(
         to_update,
         to_delete,
         failed: vec![],
+    }
+}
+
+/// Constructs `RefEdit` to update pushed remote tag ref.
+fn to_remote_tag_ref_update(
+    symbol: RemoteRefSymbol<'_>,
+    new_oid: Option<gix::ObjectId>,
+) -> gix::refs::transaction::RefEdit {
+    // No constraint on existing ref because remote tag ref shouldn't be moved
+    // externally, and should always point to the actual remote ref.
+    let expected = gix::refs::transaction::PreviousValue::Any;
+    let change = match new_oid {
+        Some(oid) => gix::refs::transaction::Change::Update {
+            log: gix::refs::transaction::LogChange::default(),
+            expected,
+            new: oid.into(),
+        },
+        None => gix::refs::transaction::Change::Delete {
+            expected,
+            log: gix::refs::transaction::RefLog::AndReference,
+        },
+    };
+    let name = format!(
+        "{REMOTE_TAG_REF_NAMESPACE}{remote}/{name}",
+        remote = symbol.remote.as_str(),
+        name = symbol.name.as_str()
+    );
+    gix::refs::transaction::RefEdit {
+        change,
+        name: name.try_into().expect("pushed ref name should be valid"),
+        deref: false,
     }
 }
 

@@ -16,11 +16,10 @@
 
 use std::sync::Arc;
 
-use itertools::Itertools as _;
 use thiserror::Error;
 
 use crate::backend::Timestamp;
-use crate::dag_walk;
+use crate::dag_walk_async;
 use crate::index::IndexStoreError;
 use crate::index::ReadonlyIndex;
 use crate::op_heads_store::OpHeadsStore;
@@ -30,6 +29,7 @@ use crate::op_store::OpStoreError;
 use crate::op_store::OperationMetadata;
 use crate::op_store::TimestampRange;
 use crate::operation::Operation;
+use crate::ref_name::WorkspaceName;
 use crate::repo::MutableRepo;
 use crate::repo::ReadonlyRepo;
 use crate::repo::Repo as _;
@@ -82,8 +82,8 @@ impl Transaction {
         self.mut_repo.base_repo()
     }
 
-    pub fn set_tag(&mut self, key: String, value: String) {
-        self.op_metadata.tags.insert(key, value);
+    pub fn set_attribute(&mut self, key: String, value: String) {
+        self.op_metadata.attributes.insert(key, value);
     }
 
     pub fn repo(&self) -> &MutableRepo {
@@ -95,12 +95,13 @@ impl Transaction {
     }
 
     pub async fn merge_operation(&mut self, other_op: Operation) -> Result<(), RepoLoaderError> {
-        let ancestor_op = dag_walk::closest_common_node_ok(
-            self.parent_ops.iter().cloned().map(Ok),
-            [Ok(other_op.clone())],
+        let ancestor_op = dag_walk_async::closest_common_node(
+            self.parent_ops.iter().cloned(),
+            [other_op.clone()],
             |op: &Operation| op.id().clone(),
-            |op: &Operation| op.parents().collect_vec(),
-        )?
+            async |op: &Operation| op.parents().await,
+        )
+        .await?
         .unwrap();
         let repo_loader = self.base_repo().loader();
         let base_repo = repo_loader.load_at(&ancestor_op).await?;
@@ -113,6 +114,10 @@ impl Transaction {
 
     pub fn set_is_snapshot(&mut self, is_snapshot: bool) {
         self.op_metadata.is_snapshot = is_snapshot;
+    }
+
+    pub fn set_workspace_name(&mut self, workspace_name: &WorkspaceName) {
+        self.op_metadata.workspace_name = Some(workspace_name.to_owned());
     }
 
     /// Writes the transaction to the operation store and publishes it.
@@ -182,7 +187,8 @@ pub fn create_op_metadata(
         hostname,
         username,
         is_snapshot,
-        tags: Default::default(),
+        workspace_name: None,
+        attributes: Default::default(),
     }
 }
 
