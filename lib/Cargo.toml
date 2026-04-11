@@ -42,9 +42,9 @@ etcetera = { workspace = true }
 futures = { workspace = true }
 gix = { workspace = true, optional = true }
 gix-attributes = { workspace = true }
+gix-ignore = { workspace = true }
 globset = { workspace = true }
 hashbrown = { workspace = true }
-ignore = { workspace = true }
 indexmap = { workspace = true }
 interim = { workspace = true }
 itertools = { workspace = true }
@@ -80,6 +80,7 @@ winreg = { workspace = true }
 [dev-dependencies]
 assert_matches = { workspace = true }
 criterion = { workspace = true }
+eyre = { workspace = true }
 indoc = { workspace = true }
 insta = { workspace = true }
 num_cpus = { workspace = true }

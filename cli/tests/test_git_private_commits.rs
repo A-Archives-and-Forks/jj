@@ -81,11 +81,24 @@ fn set_up_remote_at_main(test_env: &TestEnvironment, work_dir: &TestWorkDir, rem
 fn test_git_private_commits_block_pushing() {
     let test_env = TestEnvironment::default();
     set_up(&test_env);
+    test_env.add_config("revset-aliases.'immutable_heads()' = 'none()'");
+    let origin_dir = test_env.work_dir("origin");
     let work_dir = test_env.work_dir("local");
 
+    // Add tracked tag
+    origin_dir.run_jj(["tag", "set", "alpha", "-r@"]).success();
+    origin_dir.run_jj(["git", "export"]).success();
+    work_dir.run_jj(["git", "fetch", "--tag=*"]).success();
+
+    // Update bookmarks and tags
     work_dir.run_jj(["new", "main", "-m=private 1"]).success();
     work_dir
         .run_jj(["bookmark", "set", "main", "-r@"])
+        .success();
+    work_dir.run_jj(["bookmark", "track", "main"]).success();
+    work_dir.run_jj(["new", "root()", "-m=private 2"]).success();
+    work_dir
+        .run_jj(["tag", "set", "--allow-move", "alpha", "-r@"])
         .success();
 
     // Will not push when a pushed commit is contained in git.private-commits
@@ -93,8 +106,63 @@ fn test_git_private_commits_block_pushing() {
     let output = work_dir.run_jj(["git", "push", "--all"]);
     insta::assert_snapshot!(output, @"
     ------- stderr -------
-    Error: Won't push commit 7f665ca27d4e since it is private
-    Hint: Rejected commit: yqosqzyt 7f665ca2 main* | (empty) private 1
+    Warning: Won't push bookmark main: commit 469f044473ed is private
+      znkkpsqq 469f0444 main* | (empty) private 1
+    Hint: Configured git.private-commits: 'description('private*')'
+    Warning: Won't push tag alpha: commit 69b30fdbc569 is private
+      wqnwkozp 69b30fdb (empty) private 2
+    Hint: Configured git.private-commits: 'description('private*')'
+    Nothing changed.
+    [EOF]
+    ");
+    let output = work_dir.run_jj(["git", "push", "--tracked"]);
+    insta::assert_snapshot!(output, @"
+    ------- stderr -------
+    Warning: Won't push bookmark main: commit 469f044473ed is private
+      znkkpsqq 469f0444 main* | (empty) private 1
+    Hint: Configured git.private-commits: 'description('private*')'
+    Warning: Won't push tag alpha: commit 69b30fdbc569 is private
+      wqnwkozp 69b30fdb (empty) private 2
+    Hint: Configured git.private-commits: 'description('private*')'
+    Nothing changed.
+    [EOF]
+    ");
+    let output = work_dir.run_jj(["git", "push", "-rall()"]);
+    insta::assert_snapshot!(output, @"
+    ------- stderr -------
+    Warning: Won't push bookmark main: commit 469f044473ed is private
+      znkkpsqq 469f0444 main* | (empty) private 1
+    Hint: Configured git.private-commits: 'description('private*')'
+    Warning: Won't push tag alpha: commit 69b30fdbc569 is private
+      wqnwkozp 69b30fdb (empty) private 2
+    Hint: Configured git.private-commits: 'description('private*')'
+    Nothing changed.
+    [EOF]
+    ");
+    let output = work_dir.run_jj(["git", "push", "--change=@"]);
+    insta::assert_snapshot!(output, @"
+    ------- stderr -------
+    Creating bookmark push-wqnwkozpkust for revision wqnwkozpkust
+    Error: Won't push commit 69b30fdbc569 since it is private
+    Hint: Rejected commit: wqnwkozp 69b30fdb (empty) private 2
+    Hint: Configured git.private-commits: 'description('private*')'
+    [EOF]
+    [exit status: 1]
+    ");
+    let output = work_dir.run_jj(["git", "push", "--bookmark=*"]);
+    insta::assert_snapshot!(output, @"
+    ------- stderr -------
+    Error: Won't push commit 469f044473ed since it is private
+    Hint: Rejected commit: znkkpsqq 469f0444 main* | (empty) private 1
+    Hint: Configured git.private-commits: 'description('private*')'
+    [EOF]
+    [exit status: 1]
+    ");
+    let output = work_dir.run_jj(["git", "push", "--tag=*"]);
+    insta::assert_snapshot!(output, @"
+    ------- stderr -------
+    Error: Won't push commit 69b30fdbc569 since it is private
+    Hint: Rejected commit: wqnwkozp 69b30fdb (empty) private 2
     Hint: Configured git.private-commits: 'description('private*')'
     [EOF]
     [exit status: 1]
@@ -102,14 +170,12 @@ fn test_git_private_commits_block_pushing() {
 
     // May push when the commit is removed from git.private-commits
     test_env.add_config(r#"git.private-commits = "none()""#);
-    let output = work_dir.run_jj(["git", "push", "--all"]);
+    let output = work_dir.run_jj(["git", "push", "--bookmark=*", "--tag=*"]);
     insta::assert_snapshot!(output, @"
     ------- stderr -------
     Changes to push to origin:
-      Move forward bookmark main from 95cc152cd086 to 7f665ca27d4e
-    Warning: The working-copy commit in workspace 'default' became immutable, so a new commit has been created on top of it.
-    Working copy  (@) now at: znkkpsqq 8227d51b (empty) (no description set)
-    Parent commit (@-)      : yqosqzyt 7f665ca2 main | (empty) private 1
+      bookmark: main [move forward from 95cc152cd086 to 469f044473ed]
+      tag: alpha [move sideways from 95cc152cd086 to 69b30fdbc569]
     [EOF]
     ");
 }
@@ -130,11 +196,11 @@ fn test_git_private_commits_can_be_overridden() {
     let output = work_dir.run_jj(["git", "push", "--all"]);
     insta::assert_snapshot!(output, @"
     ------- stderr -------
-    Error: Won't push commit 7f665ca27d4e since it is private
-    Hint: Rejected commit: yqosqzyt 7f665ca2 main* | (empty) private 1
+    Warning: Won't push bookmark main: commit 7f665ca27d4e is private
+      yqosqzyt 7f665ca2 main* | (empty) private 1
     Hint: Configured git.private-commits: 'description('private*')'
+    Nothing changed.
     [EOF]
-    [exit status: 1]
     ");
 
     // May push when the commit is removed from git.private-commits
@@ -142,7 +208,7 @@ fn test_git_private_commits_can_be_overridden() {
     insta::assert_snapshot!(output, @"
     ------- stderr -------
     Changes to push to origin:
-      Move forward bookmark main from 95cc152cd086 to 7f665ca27d4e
+      bookmark: main [move forward from 95cc152cd086 to 7f665ca27d4e]
     Warning: The working-copy commit in workspace 'default' became immutable, so a new commit has been created on top of it.
     Working copy  (@) now at: znkkpsqq 8227d51b (empty) (no description set)
     Parent commit (@-)      : yqosqzyt 7f665ca2 main | (empty) private 1
@@ -167,7 +233,7 @@ fn test_git_private_commits_are_not_checked_if_immutable() {
     insta::assert_snapshot!(output, @"
     ------- stderr -------
     Changes to push to origin:
-      Move forward bookmark main from 95cc152cd086 to 7f665ca27d4e
+      bookmark: main [move forward from 95cc152cd086 to 7f665ca27d4e]
     Warning: The working-copy commit in workspace 'default' became immutable, so a new commit has been created on top of it.
     Working copy  (@) now at: yostqsxw 17947f20 (empty) (no description set)
     Parent commit (@-)      : yqosqzyt 7f665ca2 main | (empty) private 1
@@ -215,13 +281,22 @@ fn test_git_private_commits_descending_from_commits_pushed_do_not_block_pushing(
         .run_jj(["bookmark", "move", "main", "--to=@"])
         .success();
     work_dir.run_jj(["new", "-m=private 1"]).success();
+    work_dir
+        .run_jj(["bookmark", "set", "wip1", "wip2", "--to=@"])
+        .success();
 
     test_env.add_config(r#"git.private-commits = "description('private*')""#);
-    let output = work_dir.run_jj(["git", "push", "-b=main"]);
+    let output = work_dir.run_jj(["git", "push", "--all"]);
     insta::assert_snapshot!(output, @"
     ------- stderr -------
+    Warning: Won't push bookmark wip1: commit c3ad06b3e0ea is private
+      yostqsxw c3ad06b3 wip1 wip2 | (empty) private 1
+    Hint: Configured git.private-commits: 'description('private*')'
+    Warning: Won't push bookmark wip2: commit c3ad06b3e0ea is private
+      yostqsxw c3ad06b3 wip1 wip2 | (empty) private 1
+    Hint: Configured git.private-commits: 'description('private*')'
     Changes to push to origin:
-      Move forward bookmark main from 95cc152cd086 to f0291dea729d
+      bookmark: main [move forward from 95cc152cd086 to f0291dea729d]
     [EOF]
     ");
 }
@@ -249,8 +324,8 @@ fn test_git_private_commits_already_on_the_remote_do_not_block_push() {
     insta::assert_snapshot!(output, @"
     ------- stderr -------
     Changes to push to origin:
-      Add bookmark bookmark1 to 95cc152cd086
-      Move forward bookmark main from 95cc152cd086 to 03bc2bf271e0
+      bookmark: bookmark1 [add to 95cc152cd086]
+      bookmark: main [move forward from 95cc152cd086 to 03bc2bf271e0]
     Warning: The working-copy commit in workspace 'default' became immutable, so a new commit has been created on top of it.
     Working copy  (@) now at: kpqxywon 5308110d (empty) (no description set)
     Parent commit (@-)      : yostqsxw 03bc2bf2 main | (empty) public 3
@@ -267,7 +342,7 @@ fn test_git_private_commits_already_on_the_remote_do_not_block_push() {
     insta::assert_snapshot!(output, @"
     ------- stderr -------
     Changes to push to origin:
-      Move forward bookmark bookmark1 from 95cc152cd086 to 03bc2bf271e0
+      bookmark: bookmark1 [move forward from 95cc152cd086 to 03bc2bf271e0]
     [EOF]
     ");
 
@@ -283,7 +358,7 @@ fn test_git_private_commits_already_on_the_remote_do_not_block_push() {
     insta::assert_snapshot!(output, @"
     ------- stderr -------
     Changes to push to origin:
-      Add bookmark bookmark2 to 987ee765174d
+      bookmark: bookmark2 [add to 987ee765174d]
     [EOF]
     ");
 }
@@ -307,7 +382,7 @@ fn test_git_private_commits_are_evaluated_separately_for_each_remote() {
     insta::assert_snapshot!(output, @"
     ------- stderr -------
     Changes to push to origin:
-      Move forward bookmark main from 95cc152cd086 to 7eb69d0eaf71
+      bookmark: main [move forward from 95cc152cd086 to 7eb69d0eaf71]
     [EOF]
     ");
 

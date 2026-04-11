@@ -17,6 +17,7 @@ use std::ffi::OsString;
 use indoc::indoc;
 use itertools::Itertools as _;
 use regex::Regex;
+use testutils::TestResult;
 
 use crate::common::TestEnvironment;
 use crate::common::TestWorkDir;
@@ -53,10 +54,8 @@ fn test_version() {
     let expected = [
         "jj ?.??.?\n",
         "jj ?.??.?-????????????????????????????????????????\n",
-        // This test could be made to succeed when `jj` is compiled at a merge commit by adding a
-        // few entries like "jj ?.??.?-????????????????????????????????????????-?????????????????
-        // ???????????????????????\n" here. However, it might be best to keep it failing, so that
-        // we avoid releasing `jj` with such `--version` output.
+        "jj ?.??.?-????????????????????????????????????????-??????????????????????????????????????\
+         ??\n",
     ];
     assert!(
         expected.contains(&sanitized.as_str()),
@@ -222,6 +221,142 @@ fn test_ignore_working_copy() {
     insta::assert_snapshot!(output, @"
     @  00fc09f48ccf5c8b025a0f93b0ec3b0e4294a598
     ◆  0000000000000000000000000000000000000000
+    [EOF]
+    ");
+}
+
+#[test]
+fn test_no_integrate_operation() {
+    let test_env = TestEnvironment::default();
+    test_env
+        .run_jj_in(test_env.env_root(), &["git", "init", "repo"])
+        .success();
+
+    let repo_path = test_env.env_root().join("repo");
+
+    std::fs::write(repo_path.join("file1"), "initial").unwrap();
+    test_env
+        .run_jj_in(&repo_path, &["commit", "-m=initial"])
+        .success();
+    let op_log_output = test_env.run_jj_in(&repo_path, &["op", "log"]);
+    let working_copy_output = test_env.run_jj_in(&repo_path, &["debug", "working-copy"]);
+
+    // Modify the working copy and run a mutating operation. With
+    // --no-integrate-operation, the working copy gets snapshotted and the operation
+    // gets created, but there's no new operation in the operation log, and the
+    // working copy state is not updated.
+    std::fs::write(repo_path.join("file2"), "initial").unwrap();
+    let output = test_env.run_jj_in(&repo_path, &["squash", "--no-integrate-operation"]);
+    insta::assert_snapshot!(output.stdout, @"");
+    insta::assert_snapshot!(output.stderr, @"
+    Operation left uncommitted because --no-integrate-operation was requested: a028de7aa4f4
+    [EOF]
+    ");
+    let stderr = output.stderr.into_raw();
+    let first_line = stderr.split('\n').next().unwrap();
+    let op_id_hex = first_line[first_line.len() - 12..].to_string();
+    let output = test_env.run_jj_in(&repo_path, &["op", "log", "--ignore-working-copy"]);
+    assert_eq!(output.stdout, op_log_output.stdout);
+    let output = test_env.run_jj_in(&repo_path, &["debug", "working-copy"]);
+    assert_eq!(output.stdout, working_copy_output.stdout);
+
+    // We can see the resulting log and op log with --at-op
+    let stdout = test_env.run_jj_in(&repo_path, &["log", "-s", "--at-op", op_id_hex.as_str()]);
+    insta::assert_snapshot!(stdout, @"
+    @  mzvwutvl test.user@example.com 2001-02-03 08:05:11 10644da4
+    │  (empty) (no description set)
+    ○  qpvuntsm test.user@example.com 2001-02-03 08:05:11 599772f7
+    │  initial
+    │  A file1
+    │  A file2
+    ◆  zzzzzzzz root() 00000000
+    [EOF]
+    ");
+    let stdout = test_env.run_jj_in(&repo_path, &["op", "log", "--at-op", op_id_hex.as_str()]);
+    insta::assert_snapshot!(stdout, @"
+    @  a028de7aa4f4 test-username@host.example.com default@ 2001-02-03 04:05:11.000 +07:00 - 2001-02-03 04:05:11.000 +07:00
+    │  squash commits into e6fc2362ee5fdd5eb879befc0ae556a2f57b94a0
+    │  args: jj squash --no-integrate-operation
+    ○  13357990b38a test-username@host.example.com default@ 2001-02-03 04:05:11.000 +07:00 - 2001-02-03 04:05:11.000 +07:00
+    │  snapshot working copy
+    │  args: jj squash --no-integrate-operation
+    ○  e167310e1125 test-username@host.example.com default@ 2001-02-03 04:05:08.000 +07:00 - 2001-02-03 04:05:08.000 +07:00
+    │  commit 289d54a4554ed0d7df9c47d566480a6b773ee431
+    │  args: jj commit '-m=initial'
+    ○  55b88fdb1890 test-username@host.example.com default@ 2001-02-03 04:05:08.000 +07:00 - 2001-02-03 04:05:08.000 +07:00
+    │  snapshot working copy
+    │  args: jj commit '-m=initial'
+    ○  90267f31f904 test-username@host.example.com 2001-02-03 04:05:07.000 +07:00 - 2001-02-03 04:05:07.000 +07:00
+    │  add workspace 'default'
+    ○  000000000000 root()
+    [EOF]
+    ");
+}
+
+#[test]
+fn test_no_integrate_operation_colocated() {
+    let test_env = TestEnvironment::default();
+    test_env
+        .run_jj_in(test_env.env_root(), &["git", "init", "--colocate", "repo"])
+        .success();
+
+    let repo_path = test_env.env_root().join("repo");
+
+    std::fs::write(repo_path.join("file1"), "initial").unwrap();
+    test_env
+        .run_jj_in(&repo_path, &["commit", "-m=initial"])
+        .success();
+    let op_log_output = test_env.run_jj_in(&repo_path, &["op", "log"]);
+    let working_copy_output = test_env.run_jj_in(&repo_path, &["debug", "working-copy"]);
+
+    // Modify the working copy and run a mutating operation. With
+    // --no-integrate-operation, the working copy gets snapshotted and the operation
+    // gets created, but there's no new operation in the operation log, and the
+    // working copy state is not updated.
+    std::fs::write(repo_path.join("file2"), "initial").unwrap();
+    let output = test_env.run_jj_in(&repo_path, &["squash", "--no-integrate-operation"]);
+    insta::assert_snapshot!(output.stdout, @"");
+    insta::assert_snapshot!(output.stderr, @"
+    Operation left uncommitted because --no-integrate-operation was requested: 0eccbf94f56f
+    [EOF]
+    ");
+    let stderr = output.stderr.into_raw();
+    let first_line = stderr.split('\n').next().unwrap();
+    let op_id_hex = first_line[first_line.len() - 12..].to_string();
+    let output = test_env.run_jj_in(&repo_path, &["op", "log", "--ignore-working-copy"]);
+    assert_eq!(output.stdout, op_log_output.stdout);
+    let output = test_env.run_jj_in(&repo_path, &["debug", "working-copy"]);
+    assert_eq!(output.stdout, working_copy_output.stdout);
+
+    // We can see the resulting log and op log with --at-op
+    let stdout = test_env.run_jj_in(&repo_path, &["log", "-s", "--at-op", op_id_hex.as_str()]);
+    insta::assert_snapshot!(stdout, @"
+    @  mzvwutvl test.user@example.com 2001-02-03 08:05:11 10644da4
+    │  (empty) (no description set)
+    ○  qpvuntsm test.user@example.com 2001-02-03 08:05:11 599772f7
+    │  initial
+    │  A file1
+    │  A file2
+    ◆  zzzzzzzz root() 00000000
+    [EOF]
+    ");
+    let stdout = test_env.run_jj_in(&repo_path, &["op", "log", "--at-op", op_id_hex.as_str()]);
+    insta::assert_snapshot!(stdout, @"
+    @  0eccbf94f56f test-username@host.example.com default@ 2001-02-03 04:05:11.000 +07:00 - 2001-02-03 04:05:11.000 +07:00
+    │  squash commits into e6fc2362ee5fdd5eb879befc0ae556a2f57b94a0
+    │  args: jj squash --no-integrate-operation
+    ○  f9d2255ff5a3 test-username@host.example.com default@ 2001-02-03 04:05:11.000 +07:00 - 2001-02-03 04:05:11.000 +07:00
+    │  snapshot working copy
+    │  args: jj squash --no-integrate-operation
+    ○  30e6a62058cc test-username@host.example.com default@ 2001-02-03 04:05:08.000 +07:00 - 2001-02-03 04:05:08.000 +07:00
+    │  commit 289d54a4554ed0d7df9c47d566480a6b773ee431
+    │  args: jj commit '-m=initial'
+    ○  55b88fdb1890 test-username@host.example.com default@ 2001-02-03 04:05:08.000 +07:00 - 2001-02-03 04:05:08.000 +07:00
+    │  snapshot working copy
+    │  args: jj commit '-m=initial'
+    ○  90267f31f904 test-username@host.example.com 2001-02-03 04:05:07.000 +07:00 - 2001-02-03 04:05:07.000 +07:00
+    │  add workspace 'default'
+    ○  000000000000 root()
     [EOF]
     ");
 }
@@ -736,7 +871,7 @@ fn test_early_args() {
 }
 
 #[test]
-fn test_config_args() {
+fn test_config_args() -> TestResult {
     let test_env = TestEnvironment::default();
     let list_config = |args: &[&str]| {
         test_env.run_jj_in(
@@ -751,15 +886,13 @@ fn test_config_args() {
             test.key1 = 'file1'
             test.key2 = 'file1'
         "},
-    )
-    .unwrap();
+    )?;
     std::fs::write(
         test_env.env_root().join("file2.toml"),
         indoc! {"
             test.key3 = 'file2'
         "},
-    )
-    .unwrap();
+    )?;
 
     let output = list_config(&["--config=test.key1=arg1"]);
     insta::assert_snapshot!(output, @r#"
@@ -825,6 +958,7 @@ fn test_config_args() {
         [exit status: 1]
         ");
     });
+    Ok(())
 }
 
 #[test]
@@ -967,10 +1101,10 @@ fn test_conditional_config_environments() {
 
 /// Test that `jj` command works with the default configuration.
 #[test]
-fn test_default_config() {
+fn test_default_config() -> TestResult {
     let mut test_env = TestEnvironment::default();
     let config_dir = test_env.env_root().join("empty-config");
-    std::fs::create_dir(&config_dir).unwrap();
+    std::fs::create_dir(&config_dir)?;
     test_env.set_config_path(&config_dir);
 
     let envs_to_drop = test_env
@@ -1013,7 +1147,7 @@ fn test_default_config() {
     let _guard = insta_settings.bind_to_scope();
 
     let maskable_op_user = {
-        let maskable_re = Regex::new(r"^[a-zA-Z0-9\-._]+$").unwrap();
+        let maskable_re = Regex::new(r"^[a-zA-Z0-9\-._]+$")?;
         let hostname = whoami::hostname().expect("hostname should be set");
         let username = whoami::username().expect("username should be set");
         maskable_re.is_match(&hostname) && maskable_re.is_match(&username)
@@ -1065,7 +1199,7 @@ fn test_default_config() {
     let output = run_jj(&work_dir, &["op", "log", time_config]);
     if maskable_op_user {
         insta::assert_snapshot!(output, @"
-        @  <id> <user>@<host> <date-time>
+        @  <id> <user>@<host> default@ <date-time>
         │  new empty commit
         │  args: jj new
         ○  <id> <user>@<host> <date-time>
@@ -1074,6 +1208,7 @@ fn test_default_config() {
         [EOF]
         ");
     }
+    Ok(())
 }
 
 #[test]
@@ -1151,6 +1286,7 @@ fn test_help() {
     Global Options:
       -R, --repository <REPOSITORY>      Path to repository to operate on
           --ignore-working-copy          Don't snapshot the working copy, and don't update it
+          --no-integrate-operation       Run the command as usual but don't integrate any operations
           --ignore-immutable             Allow rewriting immutable commits
           --at-operation <AT_OPERATION>  Operation to load the repo at [aliases: --at-op]
           --debug                        Enable debug logging

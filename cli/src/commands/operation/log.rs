@@ -12,21 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::pin::Pin;
 use std::slice;
 
 use clap_complete::ArgValueCandidates;
-use futures::Stream;
 use futures::StreamExt as _;
+use futures::TryStreamExt as _;
 use futures::stream;
-use itertools::Itertools as _;
+use futures::stream::LocalBoxStream;
 use jj_lib::graph::GraphEdge;
 use jj_lib::graph::reverse_graph;
-use jj_lib::op_store::OpStoreError;
 use jj_lib::op_walk;
 use jj_lib::operation::Operation;
 use jj_lib::repo::RepoLoader;
 
+use super::diff::parse_op_diff_changes_in;
 use super::diff::show_op_diff;
 use crate::cli_util::CommandHelper;
 use crate::cli_util::LogContentFormat;
@@ -95,6 +94,13 @@ pub struct OperationLogArgs {
 
     #[command(flatten)]
     diff_format: DiffFormatArgs,
+
+    /// Show only changed revisions matching the given revset expression
+    ///
+    /// If no revisions are specified, this defaults to the
+    /// `revsets.op-diff-changes-in` setting.
+    #[arg(long, value_name = "REVSETS")]
+    show_changes_in: Option<String>,
 }
 
 pub async fn cmd_op_log(
@@ -114,7 +120,8 @@ pub async fn cmd_op_log(
         let workspace = command.load_workspace()?;
         let workspace_env = command.workspace_environment(ui, &workspace)?;
         let repo_loader = workspace.repo_loader();
-        let current_op = command.resolve_operation(ui, workspace.repo_loader())?;
+        let current_op =
+            command.resolve_operation(ui, workspace.repo_loader(), workspace.workspace_name())?;
         do_op_log(ui, &workspace_env, repo_loader, &current_op, args).await
     }
 }
@@ -157,11 +164,13 @@ async fn do_op_log(
     let diff_formats = diff_formats_for_log(settings, &args.diff_format, args.patch)?;
     let maybe_show_op_diff = if args.op_diff || !diff_formats.is_empty() {
         let template_text = settings.get_string("templates.commit_summary")?;
+        let op_diff_changes_expr =
+            parse_op_diff_changes_in(ui, settings, workspace_env, args.show_changes_in.as_deref())?;
         let show = async move |ui: &Ui,
                                formatter: &mut dyn Formatter,
                                op: &Operation,
                                with_content_format: &LogContentFormat| {
-            let parent_ops: Vec<_> = op.parents().try_collect()?;
+            let parent_ops = op.parents().await?;
             let merged_parent_op = repo_loader
                 .merge_operations(parent_ops.clone(), None)
                 .await?;
@@ -194,6 +203,7 @@ async fn do_op_log(
             }
             show_op_diff(
                 ui,
+                workspace_env,
                 formatter,
                 repo.as_ref(),
                 &parent_repo,
@@ -202,6 +212,7 @@ async fn do_op_log(
                 (!args.no_graph).then_some(graph_style),
                 with_content_format,
                 diff_renderer.as_ref(),
+                op_diff_changes_expr.clone(),
             )
             .await
         };
@@ -219,20 +230,20 @@ async fn do_op_log(
     if !args.no_graph {
         let mut raw_output = formatter.raw()?;
         let mut graph = get_graphlog(graph_style, raw_output.as_mut());
-        let stream = stream.map(|op| -> Result<_, OpStoreError> {
-            let op = op?;
+        let stream = stream.map_ok(|op| {
             let ids = op.parent_ids();
             let edges = ids.iter().cloned().map(GraphEdge::direct).collect();
-            Ok((op, edges))
+            (op, edges)
         });
-        let mut stream_nodes: Pin<Box<dyn Stream<Item = _>>> = if args.reversed {
-            Box::pin(stream::iter(
+        let mut stream_nodes: LocalBoxStream<'_, _> = if args.reversed {
+            stream::iter(
                 reverse_graph(stream.collect::<Vec<_>>().await.into_iter(), Operation::id)?
                     .into_iter()
                     .map(Ok),
-            ))
+            )
+            .boxed()
         } else {
-            Box::pin(stream)
+            stream.boxed_local()
         };
         while let Some(node) = stream_nodes.next().await {
             let (op, edges) = node?;
@@ -254,15 +265,12 @@ async fn do_op_log(
             )?;
         }
     } else {
-        let mut stream: Pin<Box<dyn Stream<Item = _>>> = if args.reversed {
-            Box::pin(stream::iter(
-                stream.collect::<Vec<_>>().await.into_iter().rev(),
-            ))
+        let mut stream: LocalBoxStream<'_, _> = if args.reversed {
+            stream::iter(stream.collect::<Vec<_>>().await.into_iter().rev()).boxed()
         } else {
-            Box::pin(stream)
+            stream.boxed_local()
         };
-        while let Some(op) = stream.next().await {
-            let op = op?;
+        while let Some(op) = stream.try_next().await? {
             with_content_format.write(formatter, |formatter| template.format(&op, formatter))?;
             if let Some(show) = &maybe_show_op_diff {
                 show(ui, formatter, &op, &with_content_format).await?;

@@ -14,6 +14,7 @@
 
 use indoc::indoc;
 use regex::Regex;
+use testutils::TestResult;
 
 use crate::common::TestEnvironment;
 
@@ -165,7 +166,7 @@ fn test_snapshot_large_file_restore() {
 }
 
 #[test]
-fn test_materialize_and_snapshot_different_conflict_markers() {
+fn test_materialize_and_snapshot_different_conflict_markers() -> TestResult {
     let test_env = TestEnvironment::default();
     test_env.run_jj_in(".", ["git", "init", "repo"]).success();
     let work_dir = test_env.work_dir("repo");
@@ -259,6 +260,7 @@ fn test_materialize_and_snapshot_different_conflict_markers() {
      line 3
     [EOF]
     "#);
+    Ok(())
 }
 
 #[test]
@@ -280,18 +282,16 @@ fn test_snapshot_invalid_ignore_pattern() {
     // Test invalid UTF-8 in .gitignore
     work_dir.write_file(".gitignore", b"\xff\n");
     insta::assert_snapshot!(work_dir.run_jj(["st"]), @"
-    ------- stderr -------
-    Internal error: Failed to snapshot the working copy
-    Caused by:
-    1: Invalid UTF-8 for ignore pattern in $TEST_ENV/repo/.gitignore on line #1: �
-    2: invalid utf-8 sequence of 1 bytes from index 0
+    Working copy changes:
+    A .gitignore
+    Working copy  (@) : qpvuntsm 15f3d11a (no description set)
+    Parent commit (@-): zzzzzzzz 00000000 (empty) (no description set)
     [EOF]
-    [exit status: 255]
     ");
 }
 
 #[test]
-fn test_conflict_marker_length_stored_in_working_copy() {
+fn test_conflict_marker_length_stored_in_working_copy() -> TestResult {
     let test_env = TestEnvironment::default();
     test_env.run_jj_in(".", ["git", "init", "repo"]).success();
     let work_dir = test_env.work_dir("repo");
@@ -352,7 +352,7 @@ fn test_conflict_marker_length_stored_in_working_copy() {
 
     // The timestamps in the `jj debug local-working-copy` output change, so we want
     // to remove them before asserting the snapshot
-    let timestamp_regex = Regex::new(r"\b\d{10,}\b").unwrap();
+    let timestamp_regex = Regex::new(r"\b\d{10,}\b")?;
     let redact_output = |output: String| {
         let output = timestamp_regex.replace_all(&output, "<timestamp>");
         output.into_owned()
@@ -361,7 +361,7 @@ fn test_conflict_marker_length_stored_in_working_copy() {
     // Working copy should contain conflict marker length
     let output = work_dir.run_jj(["debug", "local-working-copy"]);
     insta::assert_snapshot!(output.normalize_stdout_with(redact_output), @r#"
-    Current operation: OperationId("9b1b5903ee785b7669f206a6c66485623c2e25a5324f2be862b326e79d63bc210b978b21904ba9c4cca246509ca1b3624e537aaf42f68f6c3d25941c0a9865de")
+    Current operation: OperationId("072342f0123bbb53824fe316de828240ec981d9d11608e8a31c12253e99cd504d5a0fae3851f6a83941863a85b68954c90b7d6ad2fd4f7da469b7d8a6482c003")
     Current tree: MergedTree { tree_ids: Conflicted([TreeId("381273b50cf73f8c81b3f1502ee89e9bbd6c1518"), TreeId("771f3d31c4588ea40a8864b2a981749888e596c2"), TreeId("f56b8223da0dab22b03b8323ced4946329aeb4e0")]), labels: Labeled(["rlvkpnrz ccf9527c \"side-a\"", "qpvuntsm 2205b3ac \"base\"", "zsuskuln d7acaf48 \"side-b\""]), .. }
     Normal { exec_bit: ExecBit(false) }           313 <timestamp> Some(MaterializedConflictData { conflict_marker_len: 11 }) "file"
     [EOF]
@@ -424,7 +424,7 @@ fn test_conflict_marker_length_stored_in_working_copy() {
     // Working copy should still contain conflict marker length
     let output = work_dir.run_jj(["debug", "local-working-copy"]);
     insta::assert_snapshot!(output.normalize_stdout_with(redact_output), @r#"
-    Current operation: OperationId("0c21f0f4ee86d6ec718a3f3b45b58cd9fff4953f7487b1f630d95f90bba261ac86bfae89ac19c7887fb6d8210eea0ef1d07ce63d77624649fdecb0e4db0f85ff")
+    Current operation: OperationId("19bcba55afcdec47b31cf0217b2a4b20dd9d90fe7dd7b4cdf0c52b74735c5407a8fddd1d3b43f37c09223b8b8053289f49bcba58c0af68869f891f582460ad4a")
     Current tree: MergedTree { tree_ids: Conflicted([TreeId("381273b50cf73f8c81b3f1502ee89e9bbd6c1518"), TreeId("771f3d31c4588ea40a8864b2a981749888e596c2"), TreeId("3329c18c95f7b7a55c278c2259e9c4ce711fae59")]), labels: Labeled(["rlvkpnrz ccf9527c \"side-a\"", "qpvuntsm 2205b3ac \"base\"", "zsuskuln d7acaf48 \"side-b\""]), .. }
     Normal { exec_bit: ExecBit(false) }           274 <timestamp> Some(MaterializedConflictData { conflict_marker_len: 11 }) "file"
     [EOF]
@@ -459,11 +459,12 @@ fn test_conflict_marker_length_stored_in_working_copy() {
     // working copy
     let output = work_dir.run_jj(["debug", "local-working-copy"]);
     insta::assert_snapshot!(output.normalize_stdout_with(redact_output), @r#"
-    Current operation: OperationId("043f2dbc76093024336e81c0b731e06b30fac0b67ad7d7cf0f1ff51dbb99ef9141bc9ff04964456dc4f4adfae331488fc7be11982e7c7bf98cb5d3e653b9ff0e")
+    Current operation: OperationId("ed741c71397533330b01669ac13c3407ed89ba782a65ef038cefef27f95f3e2a513f0d3b04a2f96e79ac8b9e050ea080b06dd6ad2b10fc4e3f6978100b8ec8c9")
     Current tree: MergedTree { tree_ids: Resolved(TreeId("6120567b3cb2472d549753ed3e4b84183d52a650")), labels: Unlabeled, .. }
     Normal { exec_bit: ExecBit(false) }           130 <timestamp> None "file"
     [EOF]
     "#);
+    Ok(())
 }
 
 #[test]
@@ -540,7 +541,7 @@ fn test_submodule_ignored() {
 }
 
 #[test]
-fn test_snapshot_jjconflict_trees() {
+fn test_snapshot_jjconflict_trees() -> TestResult {
     let test_env = TestEnvironment::default();
     test_env
         .run_jj_in(".", ["git", "init", "repo", "--colocate"])
@@ -585,8 +586,7 @@ fn test_snapshot_jjconflict_trees() {
     let output = std::process::Command::new("git")
         .current_dir(work_dir.root())
         .args(["reset", "--hard", "HEAD"])
-        .output()
-        .unwrap();
+        .output()?;
     assert!(output.status.success());
 
     // We should see a warning regarding '.jjconflict' trees being checked out.
@@ -608,4 +608,5 @@ fn test_snapshot_jjconflict_trees() {
     Hint: You can use `jj abandon` to discard the working copy changes.
     [EOF]
     ");
+    Ok(())
 }

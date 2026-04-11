@@ -14,6 +14,7 @@
 
 use clap_complete::ArgValueCandidates;
 use clap_complete::ArgValueCompleter;
+use futures::TryStreamExt as _;
 use itertools::Itertools as _;
 use jj_lib::commit::Commit;
 use jj_lib::evolution::CommitEvolutionEntry;
@@ -108,7 +109,8 @@ pub(crate) async fn cmd_evolog(
     let start_commit_ids: Vec<_> = workspace_command
         .parse_union_revsets(ui, &args.revisions)?
         .evaluate_to_commit_ids()?
-        .try_collect()?;
+        .try_collect()
+        .await?;
 
     let diff_renderer = workspace_command.diff_renderer_for_log(&args.diff_format, args.patch)?;
     let graph_style = GraphStyle::from_settings(workspace_command.settings())?;
@@ -182,7 +184,7 @@ pub(crate) async fn cmd_evolog(
                 template.format(&entry, formatter)
             })?;
             if let Some(renderer) = &diff_renderer {
-                let predecessors: Vec<_> = entry.predecessors().try_collect()?;
+                let predecessors = entry.predecessors().await?;
                 let mut formatter = ui.new_formatter(&mut buffer);
                 renderer
                     .show_inter_diff(
@@ -216,7 +218,7 @@ pub(crate) async fn cmd_evolog(
             let entry = entry?;
             with_content_format.write(formatter, |formatter| template.format(&entry, formatter))?;
             if let Some(renderer) = &diff_renderer {
-                let predecessors: Vec<_> = entry.predecessors().try_collect()?;
+                let predecessors = entry.predecessors().await?;
                 let width = ui.term_width();
                 renderer
                     .show_inter_diff(

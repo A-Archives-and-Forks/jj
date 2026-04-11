@@ -16,7 +16,7 @@ use std::collections::HashSet;
 use std::rc::Rc;
 
 use clap_complete::ArgValueCandidates;
-use itertools::Itertools as _;
+use futures::TryStreamExt as _;
 use jj_lib::repo::Repo as _;
 use jj_lib::revset::RevsetExpression;
 use jj_lib::str_util::StringExpression;
@@ -41,6 +41,15 @@ use crate::ui::Ui;
 /// different from the local tag. An untracked remote tag won't be listed. For a
 /// conflicted tag (both local and remote), old target revisions are preceded by
 /// a "-" and new target revisions are preceded by a "+".
+///
+/// The `-r` flag combined with revset expressions can be used for filtering.
+/// For example:
+///
+/// * `jj tag list -r 'REV::'` shows tags whose targets are descendants of REV
+///   (similar to `git tag --contains REV`).
+///
+/// * `jj tag list -r '::REV'` shows tags whose targets are ancestors of REV
+///   (similar to `git tag --merged REV`).
 #[derive(clap::Args, Clone, Debug)]
 pub struct TagListArgs {
     /// Show all tracked and untracked remote tags including the ones whose
@@ -87,7 +96,7 @@ pub struct TagListArgs {
     ///
     /// Note that `-r deleted_tag` will not work since `deleted_tag` wouldn't
     /// have a local target.
-    #[arg(long, short, value_name = "REVSETS")]
+    #[arg(long = "revision", short, value_name = "REVSETS", alias = "revisions")]
     revisions: Option<Vec<RevisionArg>>,
 
     /// Render each tag using the given template
@@ -138,7 +147,7 @@ pub async fn cmd_tag_list(
         // Intersects with the set of local tag targets to minimize the lookup
         // space.
         expression.intersect_with(&RevsetExpression::tags(StringExpression::all()));
-        expression.evaluate_to_commit_ids()?.try_collect()?
+        expression.evaluate_to_commit_ids()?.try_collect().await?
     } else {
         HashSet::new()
     };

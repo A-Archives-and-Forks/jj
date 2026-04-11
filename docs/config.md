@@ -260,7 +260,7 @@ if(parents.len() > 1,
 '''
 ```
 
-### Bookmark/tag listing order
+### Bookmark / tag listing order
 
 By default, `jj bookmark list` and `jj tag list` display bookmarks and tags
 sorted alphabetically by name. You can customize this sorting behavior by
@@ -427,9 +427,13 @@ In git diffs you can change the default number of lines of context shown.
 
 * `context`: Number of lines of context to show in the diff. The default is `3`.
 
+* `show-path-prefix`: Whether to show the `a/` and `b/` path prefixes in
+  `diff --git` output. The default is `true`.
+
 ```toml
 [diff.git]
 context = 3
+show-path-prefix = true
 ```
 
 ### Generating diffs by external command
@@ -591,6 +595,22 @@ log = "main@origin.."
 
 The default value for `revsets.log` is
 `'present(@) | ancestors(immutable_heads().., 2) | trunk()'`.
+
+### Default revisions for operation diffs
+
+You can configure the set of revisions that are considered "interesting" when
+showing the difference between two operations (e.g. in `jj op show`,
+`jj op diff`, or `jj op log -p`). Revisions that are not in this set are
+elided into a summary count.
+
+```toml
+[revsets]
+# Only show mutable revisions and the trunk
+op-diff-changes-in = "mutable() | trunk()"
+```
+
+The default value for `revsets.op-diff-changes-in` is
+`'mutable() | immutable_heads()'`.
 
 ### Prioritize Revsets in the Log over @
 
@@ -1306,6 +1326,25 @@ the values have the following properties:
  - `enabled`: Enables or disables the tool. If omitted, the tool is enabled.
    This is useful for defining disabled tools in user configuration that can
    be enabled in individual repositories with one config setting.
+ - `line-range-arg`: An optional template string specifying how to pass a line
+   range to the tool. It may include the variables `$first` and `$last`, which
+   will be replaced with the 1-based line numbers of, respectively, the first
+   and last lines inside the modified range. A range containing a single line
+   will have equal values for `$first` and `$last`. Empty ranges representing
+   deletions will be skipped because they cannot be represented this way.
+   If the tool does not support formatting specific line ranges, this setting
+   should be omitted, and the tool will always process the entire file.
+   Example: `line-range-arg = "--lines=$first:$last"`.
+ - `run-tool-if-zero-line-ranges`: Whether to run the tool invocation for this tool on
+   files that had zero line ranges to format in the revision being fixed.
+   Defaults to `false`, meaning the tool is skipped for these files. This default
+   behavior serves two main purposes:
+   - Avoiding unnecessary executions of tools when no line ranges are modified.
+   - Preventing tools configured with `line-range-arg` from making overly
+     broad changes (formatting the whole file) when no line ranges are available.
+
+   Setting this to `true` is useful if the tool should run regardless of diffs
+   (e.g., to sort imports, or run with `--include-unchanged-files`).
 
 `jj fix` provides the file content anonymously on standard input, but the name
 of the file being formatted may be important for include sorting or other output
@@ -1337,6 +1376,39 @@ command = ["sort", "-u"]
 patterns = ["word_list.txt"]
 ```
 
+### Enforce code formatting on modified lines
+
+You can configure `jj fix` to run a formatter only on the modified lines of a
+file, rather than formatting the entire file. This is particularly useful for
+avoiding unrelated formatting changes in untouched parts of a file.
+
+To enable this, specify the `line-range-arg` configuration to match the line
+range argument format expected by your tool. The formatter will be invoked with
+this argument repeated for each modified line range (e.g. `--lines=10-20
+--lines=30-40`).
+
+Additionally, you can use `run-tool-if-zero-line-ranges` to control the
+behavior when a diff results in zero line ranges (which can happen when lines
+are only deleted or with `--include-unchanged-files`). If `false` (the default),
+`jj` will skip the tool entirely for that file. If `true`, `jj` will run the tool
+even when there are zero line ranges calculated. This is useful for tools that
+perform file-wide operations, such as import sorting.
+
+Note that you can use the `--all-lines` CLI flag for `jj fix` to ignore these
+line ranges and format the entire modified file instead.
+
+Example of `clang-format` with line ranges:
+
+```toml
+[fix.tools.clang-format]
+command = ["/usr/bin/clang-format", "--assume-filename=$path"]
+patterns = ["glob:'**/*.cc'",
+            "glob:'**/*.h'"]
+enabled = true
+line-range-arg = "--lines=$first:$last"
+run-tool-if-zero-line-ranges = false
+```
+
 ### Tools stored inside the workspace
 
 Some fix tools may be stored inside the workspace. For example, a binary may be
@@ -1345,12 +1417,8 @@ path to such a program:
 
 ```toml
 [fix.tools.biome]
-
-# Linux and macOS
-command = ["$root/node_modules/@biomejs/cli-linux-x64/biome"]
-
-# Windows
-command = ["$root\\node_modules\\@biomejs\\cli-win32-x64\\biome.exe"]
+command = ["$root/node_modules/@biomejs/biome/bin/biome", "format", "--stdin-file-path=$path"]
+patterns = ["glob:'**/*.ts'", "glob:'**/*.tsx'"]
 ```
 
 ### Execution order of tools

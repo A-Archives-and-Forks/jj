@@ -13,15 +13,17 @@
 // limitations under the License.
 
 use std::cmp::max;
+use std::convert::Infallible;
 use std::sync::Arc;
 use std::thread;
 
-use jj_lib::dag_walk;
+use jj_lib::dag_walk_async;
 use jj_lib::repo::ReadonlyRepo;
 use jj_lib::repo::Repo as _;
 use pollster::FutureExt as _;
 use test_case::test_case;
 use testutils::TestRepoBackend;
+use testutils::TestResult;
 use testutils::TestWorkspace;
 use testutils::write_random_commit;
 
@@ -30,12 +32,20 @@ fn count_non_merge_operations(repo: &Arc<ReadonlyRepo>) -> usize {
     let op_id = repo.op_id().clone();
     let mut num_ops = 0;
 
-    for op_id in dag_walk::dfs(
-        vec![op_id],
+    for op_id in dag_walk_async::dfs(
+        vec![Ok::<_, Infallible>(op_id)],
         |op_id| op_id.clone(),
-        |op_id| op_store.read_operation(op_id).block_on().unwrap().parents,
+        |op_id| {
+            op_store
+                .read_operation(op_id)
+                .block_on()
+                .unwrap()
+                .parents
+                .into_iter()
+                .map(Ok)
+        },
     ) {
-        let op = op_store.read_operation(&op_id).block_on().unwrap();
+        let op = op_store.read_operation(&op_id.unwrap()).block_on().unwrap();
         if op.parents.len() <= 1 {
             num_ops += 1;
         }
@@ -45,7 +55,7 @@ fn count_non_merge_operations(repo: &Arc<ReadonlyRepo>) -> usize {
 
 #[test_case(TestRepoBackend::Simple ; "simple backend")]
 #[test_case(TestRepoBackend::Git ; "git backend")]
-fn test_commit_parallel(backend: TestRepoBackend) {
+fn test_commit_parallel(backend: TestRepoBackend) -> TestResult {
     // This loads a Repo instance and creates and commits many concurrent
     // transactions from it. It then reloads the repo. That should merge all the
     // operations and all commits should be visible.
@@ -63,7 +73,7 @@ fn test_commit_parallel(backend: TestRepoBackend) {
             });
         }
     });
-    let repo = repo.reload_at_head().block_on().unwrap();
+    let repo = repo.reload_at_head().block_on()?;
     // One commit per thread plus the commit from the initial working-copy on top of
     // the root commit
     assert_eq!(repo.view().heads().len(), num_threads + 1);
@@ -71,11 +81,12 @@ fn test_commit_parallel(backend: TestRepoBackend) {
     // One additional operation for the root operation, one for checking out the
     // initial commit.
     assert_eq!(count_non_merge_operations(&repo), num_threads + 2);
+    Ok(())
 }
 
 #[test_case(TestRepoBackend::Simple ; "simple backend")]
 #[test_case(TestRepoBackend::Git ; "git backend")]
-fn test_commit_parallel_instances(backend: TestRepoBackend) {
+fn test_commit_parallel_instances(backend: TestRepoBackend) -> TestResult {
     // Like the test above but creates a new repo instance for every thread, which
     // makes it behave very similar to separate processes.
     let settings = testutils::user_settings();
@@ -102,4 +113,5 @@ fn test_commit_parallel_instances(backend: TestRepoBackend) {
     // One additional operation for the root operation, one for checking out the
     // initial commit.
     assert_eq!(count_non_merge_operations(&repo), num_threads + 2);
+    Ok(())
 }

@@ -16,6 +16,7 @@ use std::cmp::min;
 
 use clap_complete::ArgValueCandidates;
 use clap_complete::ArgValueCompleter;
+use futures::TryStreamExt as _;
 use itertools::Itertools as _;
 use jj_lib::backend::CommitId;
 use jj_lib::commit::Commit;
@@ -72,7 +73,7 @@ pub(crate) struct LogArgs {
     ///
     /// If no paths nor revisions are specified, this defaults to the
     /// `revsets.log` setting.
-    #[arg(long, short, value_name = "REVSETS")]
+    #[arg(long = "revision", short, value_name = "REVSETS", alias = "revisions")]
     #[arg(add = ArgValueCompleter::new(complete::revset_expression_all))]
     revisions: Vec<RevisionArg>,
 
@@ -179,7 +180,8 @@ pub(crate) async fn cmd_log(
     }
 
     let prio_revset = settings.get_string("revsets.log-graph-prioritize")?;
-    let prio_revset = workspace_command.parse_revset(ui, &RevisionArg::from(prio_revset))?;
+    let mut prio_revset = workspace_command.parse_revset(ui, &RevisionArg::from(prio_revset))?;
+    prio_revset.intersect_with(revset_expression.expression());
 
     let repo = workspace_command.repo();
     let matcher = fileset_expression.to_matcher();
@@ -218,13 +220,9 @@ pub(crate) async fn cmd_log(
             let iter: Box<dyn Iterator<Item = _>> = {
                 let mut forward_iter = TopoGroupedGraphIterator::new(revset.iter_graph(), |id| id);
 
-                let has_commit = revset.containing_fn();
-
-                for prio in prio_revset.evaluate_to_commit_ids()? {
-                    let prio = prio?;
-                    if has_commit(&prio)? {
-                        forward_iter.prioritize_branch(prio);
-                    }
+                let mut prio_stream = prio_revset.evaluate_to_commit_ids()?;
+                while let Some(prio) = prio_stream.try_next().await? {
+                    forward_iter.prioritize_branch(prio);
                 }
 
                 // The input to TopoGroupedGraphIterator shouldn't be truncated

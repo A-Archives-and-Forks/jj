@@ -48,7 +48,7 @@ use crate::backend::BackendError;
 use crate::backend::BackendInitError;
 use crate::backend::CommitId;
 use crate::commit::CommitByCommitterTimestamp;
-use crate::dag_walk;
+use crate::dag_walk_async;
 use crate::file_util;
 use crate::file_util::IoResultExt as _;
 use crate::file_util::PathError;
@@ -333,13 +333,13 @@ impl DefaultIndexStore {
         } else {
             HashSet::new()
         };
-        let commits = dag_walk::topo_order_reverse_ord_ok(
+        let commits = dag_walk_async::topo_order_reverse_ord(
             historical_heads
                 .iter()
                 .filter(|&(commit_id, _)| !parent_index_has_id(commit_id))
                 .map(|(commit_id, op_id)| get_commit_with_op(commit_id, op_id)),
             |(CommitByCommitterTimestamp(commit), _)| commit.id().clone(),
-            |(CommitByCommitterTimestamp(commit), op_id)| {
+            async |(CommitByCommitterTimestamp(commit), op_id)| {
                 let keep_predecessors =
                     commits_to_keep_immediate_predecessors.contains(commit.id());
                 itertools::chain(
@@ -354,7 +354,8 @@ impl DefaultIndexStore {
                 .collect_vec()
             },
             |_| panic!("graph has cycle"),
-        )?;
+        )
+        .await?;
         for (CommitByCommitterTimestamp(commit), op_id) in commits.iter().rev() {
             mutable_index.add_commit(commit).await.map_err(|source| {
                 DefaultIndexStoreError::IndexCommits {
@@ -535,7 +536,7 @@ impl DefaultIndexStore {
     }
 }
 
-#[async_trait]
+#[async_trait(?Send)]
 impl IndexStore for DefaultIndexStore {
     fn name(&self) -> &str {
         Self::name()

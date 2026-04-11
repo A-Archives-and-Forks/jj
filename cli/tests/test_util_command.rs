@@ -15,6 +15,7 @@
 use std::fs;
 
 use insta::assert_snapshot;
+use testutils::TestResult;
 
 use crate::common::TestEnvironment;
 
@@ -98,8 +99,8 @@ fn test_gc_operation_log() {
     ------- stderr -------
     Internal error: Failed to load an operation
     Caused by:
-    1: Object b50d0a8f111a9d30d45d429d62c8e54016cc7c891706921a6493756c8074e883671cf3dac0ac9f94ef0fa8c79738a3dfe38c3e1f6c5e1a4a4d0857d266ef2040 of type operation not found
-    2: Cannot access $TEST_ENV/repo/.jj/repo/op_store/operations/b50d0a8f111a9d30d45d429d62c8e54016cc7c891706921a6493756c8074e883671cf3dac0ac9f94ef0fa8c79738a3dfe38c3e1f6c5e1a4a4d0857d266ef2040
+    1: Object 8eda7af9cb0a21f1e2663b153d168ae65ee8508fdcff832e6ea53bd7285f5304bc6d05d3ce4096d5d0ac4c16159c02a864defafd1f2908af190e02f27d6d28ed of type operation not found
+    2: Cannot access $TEST_ENV/repo/.jj/repo/op_store/operations/8eda7af9cb0a21f1e2663b153d168ae65ee8508fdcff832e6ea53bd7285f5304bc6d05d3ce4096d5d0ac4c16159c02a864defafd1f2908af190e02f27d6d28ed
     [EOF]
     [exit status: 255]
     ");
@@ -244,7 +245,7 @@ fn test_util_exec_sets_env() {
 }
 
 #[test]
-fn test_install_man_pages() {
+fn test_install_man_pages() -> TestResult {
     let test_env = TestEnvironment::default();
 
     // no man pages present
@@ -257,7 +258,8 @@ fn test_install_man_pages() {
 
     // confirm something is now present
     assert!(man_dir.is_dir());
-    assert!(fs::read_dir(man_dir).unwrap().next().is_some());
+    assert!(fs::read_dir(man_dir)?.next().is_some());
+    Ok(())
 }
 
 #[test]

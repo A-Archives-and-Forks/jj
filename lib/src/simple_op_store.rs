@@ -39,7 +39,7 @@ use crate::backend::CommitId;
 use crate::backend::MillisSinceEpoch;
 use crate::backend::Timestamp;
 use crate::content_hash::blake2b_hash;
-use crate::dag_walk;
+use crate::dag_walk_async;
 use crate::file_util::IoResultExt as _;
 use crate::file_util::PathError;
 use crate::file_util::persist_content_addressed_temp_file;
@@ -306,7 +306,7 @@ impl OpStore for SimpleOpStore {
                 .block_on()
                 .map(|data| (id.clone(), data))
         };
-        let reachable_ops: HashMap<OperationId, Operation> = dag_walk::dfs_ok(
+        let reachable_ops: HashMap<OperationId, Operation> = dag_walk_async::dfs(
             head_ids.iter().map(read_op),
             |(id, _)| id.clone(),
             |(_, data)| data.parents.iter().map(read_op).collect_vec(),
@@ -447,7 +447,12 @@ fn operation_metadata_to_proto(
         hostname: metadata.hostname.clone(),
         username: metadata.username.clone(),
         is_snapshot: metadata.is_snapshot,
-        tags: metadata.tags.clone(),
+        workspace_name: metadata.workspace_name.clone().map(Into::into),
+        attributes: metadata
+            .attributes
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect(),
     }
 }
 
@@ -458,13 +463,15 @@ fn operation_metadata_from_proto(
         start: timestamp_from_proto(proto.start_time.unwrap_or_default()),
         end: timestamp_from_proto(proto.end_time.unwrap_or_default()),
     };
+    let workspace_name = proto.workspace_name.map(Into::into);
     OperationMetadata {
         time,
         description: proto.description,
         hostname: proto.hostname,
         username: proto.username,
         is_snapshot: proto.is_snapshot,
-        tags: proto.tags,
+        workspace_name,
+        attributes: proto.attributes.into_iter().collect(),
     }
 }
 
@@ -940,11 +947,11 @@ mod tests {
     use insta::assert_snapshot;
     use itertools::Itertools as _;
     use maplit::btreemap;
-    use maplit::hashmap;
     use maplit::hashset;
 
     use super::*;
     use crate::hex_util;
+    use crate::tests::TestResult;
     use crate::tests::new_temp_dir;
 
     fn create_view() -> View {
@@ -1030,7 +1037,8 @@ mod tests {
                 hostname: "some.host.example.com".to_string(),
                 username: "someone".to_string(),
                 is_snapshot: false,
-                tags: hashmap! {
+                workspace_name: Some(WorkspaceNameBuf::from("test")),
+                attributes: btreemap! {
                     "key1".to_string() => "value1".to_string(),
                     "key2".to_string() => "value2".to_string(),
                 },
@@ -1059,34 +1067,36 @@ mod tests {
         // Test exact output so we detect regressions in compatibility
         assert_snapshot!(
             OperationId::new(blake2b_hash(&create_operation()).to_vec()).hex(),
-            @"b544c80b5ededdd64d0f10468fa636a06b83c45d94dd9bdac95319f7fe11fee536506c5c110681dee6233e69db7647683e732939a3ec88e867250efd765fea18"
+            @"f5963c593a63bb852061a86ad919c12c6ba1940eeef30a832524c39ccea6a9f768aa2aa53becec34d379eb291ec6726837c4113857849cb9dcc62dbe0a517176"
         );
     }
 
     #[test]
-    fn test_read_write_view() {
+    fn test_read_write_view() -> TestResult {
         let temp_dir = new_temp_dir();
         let root_data = RootOperationData {
             root_commit_id: CommitId::from_hex("000000"),
         };
-        let store = SimpleOpStore::init(temp_dir.path(), root_data).unwrap();
+        let store = SimpleOpStore::init(temp_dir.path(), root_data)?;
         let view = create_view();
-        let view_id = store.write_view(&view).block_on().unwrap();
-        let read_view = store.read_view(&view_id).block_on().unwrap();
+        let view_id = store.write_view(&view).block_on()?;
+        let read_view = store.read_view(&view_id).block_on()?;
         assert_eq!(read_view, view);
+        Ok(())
     }
 
     #[test]
-    fn test_read_write_operation() {
+    fn test_read_write_operation() -> TestResult {
         let temp_dir = new_temp_dir();
         let root_data = RootOperationData {
             root_commit_id: CommitId::from_hex("000000"),
         };
-        let store = SimpleOpStore::init(temp_dir.path(), root_data).unwrap();
+        let store = SimpleOpStore::init(temp_dir.path(), root_data)?;
         let operation = create_operation();
-        let op_id = store.write_operation(&operation).block_on().unwrap();
-        let read_operation = store.read_operation(&op_id).block_on().unwrap();
+        let op_id = store.write_operation(&operation).block_on()?;
+        let read_operation = store.read_operation(&op_id).block_on()?;
         assert_eq!(read_operation, operation);
+        Ok(())
     }
 
     #[test]
