@@ -15,8 +15,9 @@
 use std::io;
 use std::path::Path;
 use std::sync::Mutex;
+use std::sync::atomic::{Ordering, AtomicI64};
 use std::time::Duration;
-use std::time::Instant;
+use std::time::SystemTime;
 
 use crossterm::terminal::Clear;
 use crossterm::terminal::ClearType;
@@ -30,11 +31,21 @@ use crate::ui::Ui;
 pub const UPDATE_HZ: u32 = 30;
 pub const INITIAL_DELAY: Duration = Duration::from_millis(250);
 
-pub struct ProgressWriter<'a> {
-    prefix: &'a str,
+struct Inner {
     guard: Option<OutputGuard>,
     output: ProgressOutput<io::Stderr>,
-    next_display_time: Instant,
+}
+
+fn time_to_ms(time: SystemTime) -> i64 {
+    time.duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_millis() as i64
+}
+
+pub struct ProgressWriter<'a> {
+    prefix: &'a str,
+    next_display_time: AtomicI64,
+    inner: Mutex<Inner>,
 }
 
 // Future work: Make that the progress prints the current element we are
@@ -60,53 +71,89 @@ impl<'a> ProgressWriter<'a> {
         let output = ui.progress_output()?;
 
         // Don't clutter the output during fast operations.
-        let next_display_time = Instant::now() + INITIAL_DELAY;
+        let next_display_time = AtomicI64::new(time_to_ms(SystemTime::now() + INITIAL_DELAY));
         Some(Self {
             prefix,
-            guard: None,
-            output,
             next_display_time,
+            inner: Mutex::new(Inner {
+                guard: None,
+                output,
+            }),
         })
     }
 
-    pub fn display(&mut self, text: &str) -> io::Result<()> {
-        let now = Instant::now();
-        if now < self.next_display_time {
+    pub fn display2(&self, text: &str) -> io::Result<()> {
+        let now = SystemTime::now();
+        if time_to_ms(now) < self.next_display_time.load(Ordering::Relaxed) {
             return Ok(());
         }
 
-        self.next_display_time = now + Duration::from_secs(1) / UPDATE_HZ;
+        // or don't use try here...
+        let Ok(mut inner) = self.inner.try_lock() else {
+            return Ok(());
+        };
+        
+        self.next_display_time.store(time_to_ms(now + Duration::from_secs(1) / UPDATE_HZ), Ordering::Relaxed);
 
-        if self.guard.is_none() {
-            self.guard = Some(
-                self.output
+        if inner.guard.is_none() {
+            inner.guard = Some(
+                inner.output
                     .output_guard(format!("\r{}", Clear(ClearType::CurrentLine))),
             );
         }
 
-        let line_width = self.output.term_width().map(usize::from).unwrap_or(80);
+        let line_width = inner.output.term_width().map(usize::from).unwrap_or(80);
         let max_path_width = self.prefix.len() + 1; // Take into account the empty space added after the prefix.
         let (display_text, _) =
             text_util::elide_start(text, "...", line_width.saturating_sub(max_path_width));
 
         write!(
-            self.output,
+            inner.output,
             "\r{}{} {display_text}",
             Clear(ClearType::CurrentLine),
             self.prefix
         )?;
-        self.output.flush()
+        inner.output.flush()
+    }
+
+    pub fn display(&mut self, text: &str) -> io::Result<()> {
+        let now = SystemTime::now();
+        if time_to_ms(now) < self.next_display_time.load(Ordering::Relaxed) {
+            return Ok(());
+        }
+
+        let inner = self.inner.get_mut().expect("poisoned");
+        
+        *self.next_display_time .get_mut() = time_to_ms(now + Duration::from_secs(1) / UPDATE_HZ);
+
+        if inner.guard.is_none() {
+            inner.guard = Some(
+                inner.output
+                    .output_guard(format!("\r{}", Clear(ClearType::CurrentLine))),
+            );
+        }
+
+        let line_width = inner.output.term_width().map(usize::from).unwrap_or(80);
+        let max_path_width = self.prefix.len() + 1; // Take into account the empty space added after the prefix.
+        let (display_text, _) =
+            text_util::elide_start(text, "...", line_width.saturating_sub(max_path_width));
+
+        write!(
+            inner.output,
+            "\r{}{} {display_text}",
+            Clear(ClearType::CurrentLine),
+            self.prefix
+        )?;
+        inner.output.flush()
     }
 }
 
 pub fn snapshot_progress(ui: &Ui) -> Option<impl Fn(&RepoPath) + use<>> {
-    let writer = Mutex::new(ProgressWriter::new(ui, "Snapshotting")?);
+    let writer = ProgressWriter::new(ui, "Snapshotting")?;
 
     Some(move |path: &RepoPath| {
         writer
-            .lock()
-            .unwrap()
-            .display(path.to_fs_path_unchecked(Path::new("")).to_str().unwrap())
+            .display2(path.to_fs_path_unchecked(Path::new("")).to_str().unwrap())
             .ok();
     })
 }
